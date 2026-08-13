@@ -1,34 +1,40 @@
 <?php
 
+use App\Http\Controllers\UserPage\CommunityController;
+use App\Http\Controllers\UserPage\EntertainmentController;
+use App\Http\Controllers\UserPage\HomeController;
+use App\Http\Controllers\UserPage\PeopleController;
+use App\Http\Controllers\UserPage\StorySubmissionController;
+use App\Http\Controllers\UserPage\YoutubeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('UserPages/Home', [
-        'featuredVideos' => [],
-        'latestVideos' => [],
-        'latestNews' => [],
-        'featuredStories' => [],
-        'communityPosts' => [],
-    ]);
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
 
-Route::get('/youtube', function () {
-    return Inertia::render('UserPages/Youtube');
-})->name('youtube.index');
+Route::get('/youtube', [YoutubeController::class, 'index'])
+    ->name('youtube.index');
 
-Route::get('/entertainment', function () {
-    return Inertia::render('UserPages/Entertainment/Index');
-})->name('entertainment.index');
+Route::get('/youtube/{video}', [YoutubeController::class, 'show'])
+    ->name('youtube.show');
 
-Route::get('/people', function () {
-    return Inertia::render('UserPages/People/Index');
-})->name('people.index');
+Route::get('/entertainment', [EntertainmentController::class, 'index'])
+    ->name('entertainment.index');
 
-Route::get('/community', function () {
-    return Inertia::render('UserPages/Community/Index');
-})->name('community.index');
+Route::get('/entertainment/{post}', [EntertainmentController::class, 'show'])
+    ->name('entertainment.show');
 
-Route::get('/share-your-story', function () {
-    return Inertia::render('UserPages/Stories/Create');
-})->name('stories.create');
+Route::get('/people', [PeopleController::class, 'index'])
+    ->name('people.index');
+
+Route::get('/people/{story}', [PeopleController::class, 'show'])
+    ->name('people.show');
+
+Route::get('/community', [CommunityController::class, 'index'])
+    ->name('community.index');
+
+Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
+    ->name('stories.create');
+
+Route::post('/share-your-story', [StorySubmissionController::class, 'store'])
+    ->name('stories.store');

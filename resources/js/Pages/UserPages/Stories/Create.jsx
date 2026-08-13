@@ -1,10 +1,34 @@
-import PublicLayout from "../../Layouts/PublicLayout";
+import { Head, useForm } from '@inertiajs/react';
+import PublicLayout from '../../Layouts/PublicLayout';
 
-export default function Create() {
+export default function Create({ categories }) {
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+        recentlySuccessful,
+    } = useForm({
+        name: '',
+        email: '',
+        title: '',
+        category_id: '',
+        story: '',
+        allow_contact: false,
+        allow_publication: true,
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+
+        post('/share-your-story');
+    };
+
     return (
         <PublicLayout title="Share Your Story">
 
-            <section className="mx-auto max-w-4xl px-5 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-4xl px-5 py-16 sm:px-6 lg:px-8">
 
                 <div className="max-w-2xl">
 
@@ -23,104 +47,220 @@ export default function Create() {
 
                 </div>
 
-                <div className="mt-12 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10">
+                {recentlySuccessful && (
+                    <div className="mt-8 rounded-2xl border border-green-200 bg-green-50 p-5 text-sm font-medium text-green-800">
+                        Thank you! Your story has been submitted successfully.
+                        Our team will review it before publication.
+                    </div>
+                )}
+
+                <form
+                    onSubmit={submit}
+                    className="mt-12 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10"
+                >
 
                     <div className="grid gap-6 sm:grid-cols-2">
 
-                        <div>
-                            <label className="text-sm font-semibold">
-                                Your Name
-                            </label>
-
+                        <Field
+                            label="Your Name"
+                            error={errors.name}
+                        >
                             <input
+                                value={data.name}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
                                 type="text"
-                                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-black"
                                 placeholder="Your name"
+                                className="input"
                             />
-                        </div>
+                        </Field>
 
-                        <div>
-                            <label className="text-sm font-semibold">
-                                Email
-                            </label>
+                        <Field
+                            label="Email"
+                            error={errors.email}
+                        >
+                            <input
+                                value={data.email}
+                                onChange={(e) =>
+                                    setData('email', e.target.value)
+                                }
+                                type="email"
+                                placeholder="you@example.com"
+                                className="input"
+                            />
+                        </Field>
+
+                    </div>
+
+                    <div className="mt-6">
+
+                        <Field
+                            label="Story Title"
+                            error={errors.title}
+                        >
+                            <input
+                                value={data.title}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
+                                type="text"
+                                placeholder="Give your story a title"
+                                className="input"
+                            />
+                        </Field>
+
+                    </div>
+
+                    <div className="mt-6">
+
+                        <Field
+                            label="Category"
+                            error={errors.category_id}
+                        >
+                            <select
+                                value={data.category_id}
+                                onChange={(e) =>
+                                    setData('category_id', e.target.value)
+                                }
+                                className="input"
+                            >
+                                <option value="">
+                                    Select category
+                                </option>
+
+                                {categories.map((category) => (
+                                    <option
+                                        key={category.id}
+                                        value={category.id}
+                                    >
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                    </div>
+
+                    <div className="mt-6">
+
+                        <Field
+                            label="Your Story"
+                            error={errors.story}
+                        >
+                            <textarea
+                                value={data.story}
+                                onChange={(e) =>
+                                    setData('story', e.target.value)
+                                }
+                                rows="10"
+                                placeholder="Tell us your story..."
+                                className="input resize-y"
+                            />
+
+                            <p className="mt-2 text-xs text-gray-400">
+                                Minimum 50 characters.
+                            </p>
+                        </Field>
+
+                    </div>
+
+                    <div className="mt-8 space-y-4">
+
+                        <label className="flex cursor-pointer gap-3">
 
                             <input
-                                type="email"
-                                className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-black"
-                                placeholder="you@example.com"
+                                type="checkbox"
+                                checked={data.allow_publication}
+                                onChange={(e) =>
+                                    setData(
+                                        'allow_publication',
+                                        e.target.checked
+                                    )
+                                }
+                                className="mt-1"
                             />
-                        </div>
 
-                    </div>
+                            <span className="text-sm leading-6 text-gray-600">
+                                I agree that TrendPulse may publish my story
+                                after review.
+                            </span>
 
-                    <div className="mt-6">
-
-                        <label className="text-sm font-semibold">
-                            Story Title
                         </label>
 
-                        <input
-                            type="text"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-black"
-                            placeholder="Give your story a title"
-                        />
+                        <label className="flex cursor-pointer gap-3">
 
-                    </div>
+                            <input
+                                type="checkbox"
+                                checked={data.allow_contact}
+                                onChange={(e) =>
+                                    setData(
+                                        'allow_contact',
+                                        e.target.checked
+                                    )
+                                }
+                                className="mt-1"
+                            />
 
-                    <div className="mt-6">
+                            <span className="text-sm leading-6 text-gray-600">
+                                You may contact me about my submission.
+                            </span>
 
-                        <label className="text-sm font-semibold">
-                            Your Story
                         </label>
-
-                        <textarea
-                            rows="8"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-black"
-                            placeholder="Tell us your story..."
-                        />
-
-                    </div>
-
-                    <div className="mt-6">
-
-                        <label className="text-sm font-semibold">
-                            Story Category
-                        </label>
-
-                        <select className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-black">
-                            <option value="">
-                                Select category
-                            </option>
-                            <option value="relationship">
-                                Relationship
-                            </option>
-                            <option value="life">
-                                Life Experience
-                            </option>
-                            <option value="inspiration">
-                                Inspiration
-                            </option>
-                            <option value="family">
-                                Family
-                            </option>
-                            <option value="other">
-                                Other
-                            </option>
-                        </select>
 
                     </div>
 
                     <button
-                        type="button"
-                        className="mt-8 w-full rounded-full bg-black px-6 py-4 text-sm font-bold text-white transition hover:bg-gray-800"
+                        type="submit"
+                        disabled={processing}
+                        className="mt-8 w-full rounded-full bg-black px-6 py-4 text-sm font-bold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        Submit My Story
+                        {processing
+                            ? 'Submitting...'
+                            : 'Submit My Story'}
                     </button>
 
-                </div>
+                </form>
 
             </section>
 
+            <Head>
+                <style>{`
+                    .input {
+                        width: 100%;
+                        border-radius: 0.75rem;
+                        border: 1px solid #e5e7eb;
+                        padding: 0.75rem 1rem;
+                        outline: none;
+                        background: white;
+                    }
+
+                    .input:focus {
+                        border-color: #000;
+                    }
+                `}</style>
+            </Head>
+
         </PublicLayout>
+    );
+}
+
+function Field({ label, error, children }) {
+    return (
+        <div>
+            <label className="text-sm font-semibold">
+                {label}
+            </label>
+
+            <div className="mt-2">
+                {children}
+            </div>
+
+            {error && (
+                <p className="mt-2 text-sm text-red-600">
+                    {error}
+                </p>
+            )}
+        </div>
     );
 }

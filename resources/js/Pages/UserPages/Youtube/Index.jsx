@@ -1,5 +1,5 @@
-import PublicLayout from '../Layouts/PublicLayout';
-import SectionHeading from '../../Components/SectionHeading';
+import PublicLayout from '../../Layouts/PublicLayout';
+import SectionHeading from '../../../Components/SectionHeading';
 
 export default function Index() {
     return (
