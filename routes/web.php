@@ -4,11 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('UserPages/Home');
+    return Inertia::render('UserPages/Home', [
+        'featuredVideos' => [],
+        'latestVideos' => [],
+        'latestNews' => [],
+        'featuredStories' => [],
+        'communityPosts' => [],
+    ]);
 })->name('home');
 
 Route::get('/youtube', function () {
-    return Inertia::render('UserPages/Youtube/Index');
+    return Inertia::render('UserPages/Youtube');
 })->name('youtube.index');
 
 Route::get('/entertainment', function () {
