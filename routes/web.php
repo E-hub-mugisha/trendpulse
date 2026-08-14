@@ -8,6 +8,19 @@ use App\Http\Controllers\UserPage\StorySubmissionController;
 use App\Http\Controllers\UserPage\YoutubeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProfileController;
+
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
 
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
@@ -32,7 +45,12 @@ Route::get('/people/{story}', [PeopleController::class, 'show'])
 
 Route::get('/community', [CommunityController::class, 'index'])
     ->name('community.index');
-
+Route::middleware('auth')->group(function () {
+    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
+    Route::post('/community/{post}/like', [CommunityController::class, 'toggleLike'])->name('community.like');
+    Route::post('/community/{post}/comments', [CommunityController::class, 'storeComment'])->name('community.comments.store');
+    Route::post('/community/comments/{comment}/like', [CommunityController::class, 'toggleCommentLike'])->name('community.comments.like');
+});
 Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
     ->name('stories.create');
 
