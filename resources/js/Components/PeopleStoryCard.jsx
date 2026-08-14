@@ -7,7 +7,7 @@ export default function PeopleStoryCard({ story }) {
             className="group block overflow-hidden rounded-3xl bg-white"
         >
 
-            <div className="aspect-[4/5] overflow-hidden bg-gray-200">
+            <div className="relative aspect-[4/5] overflow-hidden bg-gray-200">
 
                 {story.featured_image ? (
                     <img
@@ -21,13 +21,33 @@ export default function PeopleStoryCard({ story }) {
                     </div>
                 )}
 
+                {story.is_popular && (
+                    <span className="absolute left-4 top-4 rounded-full bg-black/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                        Popular
+                    </span>
+                )}
+
+                {!story.is_popular && story.trending_views_count > 0 && (
+                    <span className="absolute left-4 top-4 rounded-full bg-black/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                        Trending
+                    </span>
+                )}
+
             </div>
 
             <div className="p-6">
 
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                    {story.category || 'Relationship'}
-                </p>
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                        {story.category || 'Relationship'}
+                    </p>
+
+                    {typeof story.views === 'number' && (
+                        <p className="text-xs text-gray-400">
+                            {story.views.toLocaleString()} views
+                        </p>
+                    )}
+                </div>
 
                 <h3 className="mt-2 text-xl font-bold">
                     {story.title}

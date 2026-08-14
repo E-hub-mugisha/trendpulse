@@ -36,4 +36,9 @@ class YoutubeVideo extends Model
         return $this->thumbnail
             ?: "https://img.youtube.com/vi/{$this->youtube_id}/hqdefault.jpg";
     }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 }
