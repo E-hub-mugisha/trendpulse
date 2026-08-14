@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 use App\Http\Controllers\UserPage\CommunityController;
 use App\Http\Controllers\UserPage\EntertainmentController;
 use App\Http\Controllers\UserPage\HomeController;
@@ -8,19 +10,6 @@ use App\Http\Controllers\UserPage\StorySubmissionController;
 use App\Http\Controllers\UserPage\YoutubeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\ProfileController;
-
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
 
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
@@ -56,3 +45,15 @@ Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
 
 Route::post('/share-your-story', [StorySubmissionController::class, 'store'])
     ->name('stories.store');
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
