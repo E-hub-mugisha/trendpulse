@@ -20,34 +20,34 @@ class CommunityController extends Controller
             ->where('status', 'published')
             ->with([
                 'user:id,name,avatar',
-                'comments' => fn ($q) => $q
+                'comments' => fn($q) => $q
                     ->whereNull('parent_id')
                     ->where('status', 'approved')
                     ->latest()
                     ->with([
                         'user:id,name,avatar',
-                        'replies' => fn ($r) => $r
+                        'replies' => fn($r) => $r
                             ->where('status', 'approved')
                             ->oldest()
                             ->with('user:id,name,avatar')
                             ->withCount('likes')
-                            ->when($userId, fn ($l) => $l->with(['likes' => fn ($x) => $x->where('user_id', $userId)])),
+                            ->when($userId, fn($l) => $l->with(['likes' => fn($x) => $x->where('user_id', $userId)])),
                     ])
                     ->withCount('likes')
-                    ->when($userId, fn ($l) => $l->with(['likes' => fn ($x) => $x->where('user_id', $userId)]))
+                    ->when($userId, fn($l) => $l->with(['likes' => fn($x) => $x->where('user_id', $userId)]))
                     ->limit(3),
             ])
             ->withCount([
                 'likes',
-                'comments' => fn ($q) => $q->where('status', 'approved'),
+                'comments' => fn($q) => $q->where('status', 'approved'),
             ])
             ->when($userId, function ($q) use ($userId) {
-                $q->with(['likes' => fn ($l) => $l->where('user_id', $userId)]);
+                $q->with(['likes' => fn($l) => $l->where('user_id', $userId)]);
             })
             ->latest()
             ->paginate(10)
             ->withQueryString()
-            ->through(fn ($post) => [
+            ->through(fn($post) => [
                 'id' => $post->id,
                 'content' => $post->content,
                 'image' => $post->image,
@@ -59,7 +59,7 @@ class CommunityController extends Controller
                 'likes_count' => $post->likes_count,
                 'comments_count' => $post->comments_count,
                 'liked_by_user' => $userId ? $post->likes->isNotEmpty() : false,
-                'recent_comments' => $post->comments->map(fn ($comment) => $this->transformComment($comment, $userId)),
+                'recent_comments' => $post->comments->map(fn($comment) => $this->transformComment($comment, $userId)),
             ]);
 
         return Inertia::render('UserPages/Community/Index', [
@@ -145,8 +145,16 @@ class CommunityController extends Controller
             'likes_count' => $comment->likes_count,
             'liked_by_user' => $userId ? $comment->likes->isNotEmpty() : false,
             'replies' => $comment->relationLoaded('replies')
-                ? $comment->replies->map(fn ($reply) => $this->transformComment($reply, $userId))
+                ? $comment->replies->map(fn($reply) => $this->transformComment($reply, $userId))
                 : [],
         ];
+    }
+    public function destroy(CommunityPost $post): RedirectResponse
+    {
+        abort_unless($post->user_id === request()->user()->id, 403);
+
+        $post->delete();
+
+        return back();
     }
 }

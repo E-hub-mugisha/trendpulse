@@ -1,7 +1,7 @@
 // resources/js/Components/CommunityPost.jsx
 
 import { router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function ThumbsUpIcon({ filled }) {
     return (
@@ -55,6 +55,97 @@ function Avatar({ user, className = 'h-10 w-10' }) {
                     {user.name?.charAt(0) || '?'}
                 </div>
             )}
+        </div>
+    );
+}
+
+function PostMenu({ post, isAuthenticated }) {
+    const [open, setOpen] = useState(false);
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setOpen(false);
+                setConfirmingDelete(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleDelete = () => {
+        router.delete(`/community/${post.id}`, {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <div ref={menuRef} className="relative">
+
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-black"
+            >
+                <DotsIcon />
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-9 z-10 w-44 overflow-hidden rounded-2xl bg-white py-1.5 shadow-lg ring-1 ring-black/5">
+
+                    {post.is_owner ? (
+                        confirmingDelete ? (
+                            <div className="px-4 py-3">
+                                <p className="text-xs text-gray-500">Delete this post?</p>
+                                <div className="mt-2 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white"
+                                    >
+                                        Delete
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmingDelete(false)}
+                                        className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setConfirmingDelete(true)}
+                                className="flex w-full items-center px-4 py-2 text-sm text-red-500 hover:bg-gray-50"
+                            >
+                                Delete post
+                            </button>
+                        )
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setOpen(false);
+                                if (!isAuthenticated) {
+                                    router.visit('/login');
+                                    return;
+                                }
+                                alert('Thanks — this post has been reported.');
+                            }}
+                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                            Report post
+                        </button>
+                    )}
+
+                </div>
+            )}
+
         </div>
     );
 }
@@ -272,9 +363,7 @@ export default function CommunityPost({ post, isAuthenticated }) {
                     </div>
                 </div>
 
-                <button type="button" className="text-gray-400 hover:text-black">
-                    <DotsIcon />
-                </button>
+                <PostMenu post={post} isAuthenticated={isAuthenticated} />
 
             </div>
 

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EntertainmentPostController;
+use App\Http\Controllers\Admin\YoutubeVideoController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\UserPage\CommunityController;
@@ -39,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/community/{post}/like', [CommunityController::class, 'toggleLike'])->name('community.like');
     Route::post('/community/{post}/comments', [CommunityController::class, 'storeComment'])->name('community.comments.store');
     Route::post('/community/comments/{comment}/like', [CommunityController::class, 'toggleCommentLike'])->name('community.comments.like');
+    Route::delete('/community/{post}', [CommunityController::class, 'destroy'])->name('community.destroy');
 });
 Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
     ->name('stories.create');
@@ -55,5 +59,26 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/dashboard', [
+            DashboardController::class,
+            'index'
+        ])->name('dashboard');
+
+        Route::resource('youtube', YoutubeVideoController::class)
+        ->parameters(['youtube' => 'video'])
+        ->names('youtube');
+
+        Route::resource('entertainment', EntertainmentPostController::class)
+        ->parameters(['entertainment' => 'post'])
+        ->names('entertainment');
+    });
+
+    
 
 require __DIR__.'/auth.php';
