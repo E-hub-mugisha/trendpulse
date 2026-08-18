@@ -37,7 +37,7 @@ class EntertainmentPostController extends Controller
             ->latest()
             ->paginate(12)
             ->withQueryString()
-            ->through(fn ($post) => [
+            ->through(fn($post) => [
                 'id' => $post->id,
                 'slug' => $post->slug,
                 'title' => $post->title,
@@ -104,6 +104,53 @@ class EntertainmentPostController extends Controller
             ->with('success', 'Post created successfully.');
     }
 
+    // show
+    public function show(EntertainmentPost $post): Response
+    {
+        $post->load(['category:id,name', 'author:id,name,email']);
+
+        $viewsLast7Days = $post->postViews()
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+
+        $viewsLast30Days = $post->postViews()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+
+        $relatedPosts = EntertainmentPost::query()
+            ->where('id', '!=', $post->id)
+            ->when($post->category_id, fn($q) => $q->where('category_id', $post->category_id))
+            ->latest()
+            ->take(4)
+            ->get(['id', 'slug', 'title', 'featured_image', 'is_published']);
+
+        return Inertia::render('Admin/Entertainment/Show', [
+            'post' => [
+                'id' => $post->id,
+                'slug' => $post->slug,
+                'title' => $post->title,
+                'excerpt' => $post->excerpt,
+                'content' => $post->content,
+                'featured_image' => $post->featured_image,
+                'category' => $post->category?->name,
+                'author' => $post->author ? [
+                    'name' => $post->author->name,
+                    'email' => $post->author->email,
+                ] : null,
+                'views' => $post->views,
+                'views_last_7_days' => $viewsLast7Days,
+                'views_last_30_days' => $viewsLast30Days,
+                'is_featured' => $post->is_featured,
+                'is_popular' => $post->is_popular,
+                'is_published' => $post->is_published,
+                'published_at' => $post->published_at?->format('M j, Y \a\t g:i A'),
+                'created_at' => $post->created_at->format('M j, Y \a\t g:i A'),
+                'updated_at' => $post->updated_at->diffForHumans(),
+            ],
+            'relatedPosts' => $relatedPosts,
+        ]);
+    }
+
     public function edit(EntertainmentPost $post): Response
     {
         return Inertia::render('Admin/Entertainment/Edit', [
@@ -163,8 +210,8 @@ class EntertainmentPostController extends Controller
 
         while (
             EntertainmentPost::where('slug', $slug)
-                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-                ->exists()
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->exists()
         ) {
             $slug = "{$base}-{$i}";
             $i++;

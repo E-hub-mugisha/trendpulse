@@ -26,6 +26,9 @@ export default function Index({ posts }) {
         });
     };
 
+    const firstName = auth?.user?.name?.split(' ')[0];
+    const initial = auth?.user?.name?.charAt(0)?.toUpperCase();
+
     return (
         <PublicLayout title="Community">
 
@@ -40,88 +43,107 @@ export default function Index({ posts }) {
                 {auth?.user ? (
                     <form
                         onSubmit={submit}
-                        className="mb-8 rounded-3xl bg-black p-6 text-white sm:p-8"
+                        className="mb-8 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
                     >
-                        <h2 className="text-2xl font-black">
-                            Have something to say?
-                        </h2>
+                        <div className="h-1.5 bg-[#0A599E]" />
 
-                        <p className="mt-2 text-sm text-gray-400">
-                            Share your thoughts with the wider TrendPulse community.
-                        </p>
+                        <div className="p-6 sm:p-8">
 
-                        <textarea
-                            value={data.content}
-                            onChange={(e) => setData('content', e.target.value)}
-                            placeholder={`What's on your mind, ${auth.user.name?.split(' ')[0]}?`}
-                            rows={3}
-                            className="mt-5 w-full resize-none rounded-2xl border-0 bg-white/10 p-4 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/40"
-                        />
-                        {errors.content && (
-                            <p className="mt-1 text-xs text-red-400">{errors.content}</p>
-                        )}
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0A599E] text-sm font-bold text-white">
+                                    {initial}
+                                </div>
 
-                        {data.image && (
-                            <p className="mt-2 text-xs text-gray-400">
-                                Attached: {data.image.name}
-                            </p>
-                        )}
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="text-xl font-black text-black">
+                                        Have something to say?
+                                    </h2>
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Share your thoughts with the wider TrendPulse community.
+                                    </p>
 
-                            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white hover:bg-white/20">
-                                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                                    <circle cx="8.5" cy="8.5" r="1.5" />
-                                    <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                Add photo
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => setData('image', e.target.files[0] ?? null)}
-                                />
-                            </label>
+                                    <textarea
+                                        value={data.content}
+                                        onChange={(e) => setData('content', e.target.value)}
+                                        placeholder={`What's on your mind, ${firstName}?`}
+                                        rows={3}
+                                        className="mt-4 w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-black placeholder-gray-400 outline-none transition focus:border-[#0A599E] focus:bg-white focus:ring-2 focus:ring-[#0A599E]/25"
+                                    />
+                                    {errors.content && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">{errors.content}</p>
+                                    )}
 
-                            <div className="flex items-center gap-3">
-                                <Link
-                                    href="/share-your-story"
-                                    className="text-xs font-bold text-gray-400 hover:text-white"
-                                >
-                                    Write a full story instead →
-                                </Link>
+                                    {data.image && (
+                                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-[#0A599E]">
+                                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                            {data.image.name}
+                                        </p>
+                                    )}
 
-                                <button
-                                    type="submit"
-                                    disabled={processing || !data.content.trim()}
-                                    className="rounded-full bg-white px-5 py-3 text-sm font-bold text-black disabled:opacity-40"
-                                >
-                                    Post
-                                </button>
+                                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+
+                                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-xs font-bold text-gray-700 transition hover:border-[#0A599E] hover:text-[#0A599E]">
+                                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                            Add photo
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => setData('image', e.target.files[0] ?? null)}
+                                            />
+                                        </label>
+
+                                        <div className="flex items-center gap-4">
+                                            <Link
+                                                href="/share-your-story"
+                                                className="text-xs font-bold text-gray-400 transition hover:text-[#0A599E]"
+                                            >
+                                                Write a full story instead →
+                                            </Link>
+
+                                            <button
+                                                type="submit"
+                                                disabled={processing || !data.content.trim()}
+                                                className="rounded-full bg-[#0A599E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#07406F] disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                                Post
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
                         </div>
                     </form>
                 ) : (
-                    <div className="mb-8 rounded-3xl bg-black p-6 text-white sm:p-8">
+                    <div className="mb-8 overflow-hidden rounded-3xl border border-gray-200 bg-black text-white">
+                        <div className="h-1.5 bg-[#0A599E]" />
 
-                        <h2 className="text-2xl font-black">
-                            Have something to say?
-                        </h2>
+                        <div className="p-6 sm:p-8">
+                            <h2 className="text-2xl font-black">
+                                Have something to say?
+                            </h2>
 
-                        <p className="mt-2 text-sm text-gray-400">
-                            Sign in to post, like, and comment with the TrendPulse community.
-                        </p>
+                            <p className="mt-2 text-sm text-gray-400">
+                                Sign in to post, like, and comment with the TrendPulse community.
+                            </p>
 
-                        <Link
-                            href="/login"
-                            className="mt-5 inline-flex rounded-full bg-white px-5 py-3 text-sm font-bold text-black"
-                        >
-                            Sign in to post →
-                        </Link>
-
+                            <Link
+                                href="/login"
+                                className="mt-5 inline-flex rounded-full bg-[#0A599E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#0d6ab8]"
+                            >
+                                Sign in to post →
+                            </Link>
+                        </div>
                     </div>
                 )}
 
@@ -136,8 +158,8 @@ export default function Index({ posts }) {
                             />
                         ))
                     ) : (
-                        <div className="rounded-3xl bg-gray-100 p-16 text-center">
-                            <h3 className="font-bold">
+                        <div className="rounded-3xl border-2 border-dashed border-[#0A599E]/25 bg-[#0A599E]/5 p-16 text-center">
+                            <h3 className="font-bold text-black">
                                 No community posts yet
                             </h3>
 
@@ -157,10 +179,10 @@ export default function Index({ posts }) {
                                 key={index}
                                 href={link.url || '#'}
                                 preserveScroll
-                                className={`rounded-lg px-4 py-2 text-sm ${
+                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                                     link.active
-                                        ? 'bg-black text-white'
-                                        : 'bg-gray-100'
+                                        ? 'bg-[#0A599E] text-white'
+                                        : 'border border-gray-200 bg-white text-gray-600 hover:border-[#0A599E] hover:text-[#0A599E]'
                                 }`}
                                 dangerouslySetInnerHTML={{
                                     __html: link.label,

@@ -25,7 +25,6 @@ const MENU = [
     { label: 'YouTube', href: '/admin/youtube', icon: PlayCircle },
     { label: 'Entertainment', href: '/admin/entertainment', icon: Newspaper },
     { label: 'People', href: '/admin/people', icon: Users },
-    { label: 'Story Submissions', href: '/admin/story-submissions', icon: PenSquare },
     { label: 'Community', href: '/admin/community', icon: MessageCircle },
     { label: 'Users', href: '/admin/users', icon: UserCircle },
 ];

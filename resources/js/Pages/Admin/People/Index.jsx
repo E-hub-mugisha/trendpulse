@@ -1,3 +1,5 @@
+// resources/js/Pages/Admin/People/Index.jsx
+
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -9,7 +11,7 @@ import {
     Trash2,
     Star,
     Flame,
-    Newspaper,
+    Users,
     CheckCircle2,
     FileClock,
     X,
@@ -29,13 +31,13 @@ function StatusBadge({ published }) {
     );
 }
 
-export default function Index({ posts, categories, filters, stats }) {
+export default function Index({ stories, categories, filters, stats }) {
     const { flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [confirmDelete, setConfirmDelete] = useState(null);
 
     const applyFilters = (next) => {
-        router.get('/admin/entertainment', { ...filters, ...next }, {
+        router.get('/admin/people', { ...filters, ...next }, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -48,14 +50,14 @@ export default function Index({ posts, categories, filters, stats }) {
     };
 
     const handleDelete = (id) => {
-        router.delete(`/admin/entertainment/${id}`, {
+        router.delete(`/admin/people/${id}`, {
             preserveScroll: true,
             onSuccess: () => setConfirmDelete(null),
         });
     };
 
     return (
-        <AdminLayout title="Entertainment">
+        <AdminLayout title="People Stories">
 
             <div>
 
@@ -66,16 +68,16 @@ export default function Index({ posts, categories, filters, stats }) {
                             CONTENT
                         </p>
                         <h1 className="mt-1 text-2xl font-black tracking-tight">
-                            Entertainment Posts
+                            People Stories
                         </h1>
                     </div>
 
                     <Link
-                        href="/admin/entertainment/create"
+                        href="/admin/people/create"
                         className="flex items-center gap-2 rounded-xl bg-black px-4 py-2.5 text-sm font-bold text-white transition hover:bg-gray-800"
                     >
                         <Plus className="h-4 w-4" strokeWidth={2.5} />
-                        Add Post
+                        Add Story
                     </Link>
 
                 </div>
@@ -90,7 +92,7 @@ export default function Index({ posts, categories, filters, stats }) {
                 <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                     <div className="rounded-2xl border border-gray-100 bg-white p-5">
-                        <p className="text-xs font-medium text-gray-400">Total Posts</p>
+                        <p className="text-xs font-medium text-gray-400">Total Stories</p>
                         <p className="mt-1 text-2xl font-black">{stats.total}</p>
                     </div>
 
@@ -119,7 +121,7 @@ export default function Index({ posts, categories, filters, stats }) {
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search posts..."
+                            placeholder="Search by title or person..."
                             className="w-full border-0 bg-transparent p-0 text-sm placeholder-gray-400 focus:outline-none focus:ring-0"
                         />
                     </form>
@@ -152,7 +154,7 @@ export default function Index({ posts, categories, filters, stats }) {
                             type="button"
                             onClick={() => {
                                 setSearch('');
-                                router.get('/admin/entertainment', {}, { preserveState: true, preserveScroll: true });
+                                router.get('/admin/people', {}, { preserveState: true, preserveScroll: true });
                             }}
                             className="flex items-center gap-1 text-sm font-bold text-gray-400 hover:text-black"
                         >
@@ -165,19 +167,19 @@ export default function Index({ posts, categories, filters, stats }) {
 
                 <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
 
-                    {posts.data.length === 0 ? (
+                    {stories.data.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <Newspaper className="h-10 w-10 text-gray-200" strokeWidth={1.5} />
-                            <p className="mt-3 text-sm font-bold text-gray-500">No posts found</p>
-                            <p className="mt-1 text-xs text-gray-400">Try adjusting your filters or add a new post.</p>
+                            <Users className="h-10 w-10 text-gray-200" strokeWidth={1.5} />
+                            <p className="mt-3 text-sm font-bold text-gray-500">No stories found</p>
+                            <p className="mt-1 text-xs text-gray-400">Try adjusting your filters or add a new story.</p>
                         </div>
                     ) : (
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-gray-100 bg-gray-50/60">
-                                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400">Post</th>
-                                    <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 sm:table-cell">Category</th>
-                                    <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 md:table-cell">Author</th>
+                                    <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400">Story</th>
+                                    <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 sm:table-cell">Person</th>
+                                    <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 md:table-cell">Category</th>
                                     <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 md:table-cell">Views</th>
                                     <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400">Status</th>
                                     <th className="hidden px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-400 lg:table-cell">Published</th>
@@ -185,73 +187,76 @@ export default function Index({ posts, categories, filters, stats }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {posts.data.map((post) => (
-                                    <tr key={post.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/40">
+                                {stories.data.map((story) => (
+                                    <tr key={story.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/40">
 
                                         <td className="px-5 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                                                    {post.featured_image ? (
+                                                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                                                    {story.featured_image ? (
                                                         <img
-                                                            src={post.featured_image}
-                                                            alt={post.title}
+                                                            src={story.featured_image}
+                                                            alt={story.title}
                                                             className="h-full w-full object-cover"
                                                         />
                                                     ) : (
                                                         <div className="flex h-full w-full items-center justify-center text-gray-300">
-                                                            <Newspaper className="h-5 w-5" strokeWidth={1.5} />
+                                                            <Users className="h-5 w-5" strokeWidth={1.5} />
                                                         </div>
                                                     )}
-                                                    {post.is_featured && (
-                                                        <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/70">
+                                                    {story.is_featured && (
+                                                        <div className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/80">
                                                             <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
-                                                        </div>
-                                                    )}
-                                                    {post.is_popular && (
-                                                        <div className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/70">
-                                                            <Flame className="h-2.5 w-2.5 fill-orange-400 text-orange-400" />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <span className="line-clamp-2 max-w-xs text-sm font-bold text-gray-800">
-                                                    {post.title}
+                                                    {story.title}
                                                 </span>
                                             </div>
                                         </td>
 
-                                        <td className="hidden px-5 py-3 text-sm text-gray-500 sm:table-cell">
-                                            {post.category || '—'}
+                                        <td className="hidden px-5 py-3 sm:table-cell">
+                                            <p className="text-sm font-medium text-gray-700">{story.person_name}</p>
+                                            {story.relationship_status && (
+                                                <p className="text-xs text-gray-400">{story.relationship_status}</p>
+                                            )}
                                         </td>
 
                                         <td className="hidden px-5 py-3 text-sm text-gray-500 md:table-cell">
-                                            {post.author || '—'}
+                                            {story.category || '—'}
                                         </td>
 
                                         <td className="hidden px-5 py-3 text-sm text-gray-500 md:table-cell">
-                                            {post.views.toLocaleString()}
+                                            {story.views.toLocaleString()}
                                         </td>
 
                                         <td className="px-5 py-3">
-                                            <StatusBadge published={post.is_published} />
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <StatusBadge published={story.is_published} />
+                                                {story.is_popular && (
+                                                    <Flame className="h-4 w-4 fill-orange-400 text-orange-400" title="Popular" />
+                                                )}
+                                            </div>
                                         </td>
 
                                         <td className="hidden px-5 py-3 text-sm text-gray-400 lg:table-cell">
-                                            {post.published_at || '—'}
+                                            {story.published_at || '—'}
                                         </td>
 
                                         <td className="px-5 py-3">
                                             <div className="flex items-center justify-end gap-1">
 
-                                                
-                                                <a    href={`/admin/entertainment/${post.slug}`}
+                                                <Link
+                                                    href={`/admin/people/${story.slug}`}
                                                     className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-black"
-                                                    title="View"
+                                                    title="View details"
                                                 >
                                                     <Eye className="h-4 w-4" strokeWidth={2} />
-                                                </a>
+                                                </Link>
 
                                                 <Link
-                                                    href={`/admin/entertainment/${post.slug}/edit`}
+                                                    href={`/admin/people/${story.slug}/edit`}
                                                     className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-black"
                                                     title="Edit"
                                                 >
@@ -260,7 +265,7 @@ export default function Index({ posts, categories, filters, stats }) {
 
                                                 <button
                                                     type="button"
-                                                    onClick={() => setConfirmDelete(post)}
+                                                    onClick={() => setConfirmDelete(story)}
                                                     className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
                                                     title="Delete"
                                                 >
@@ -278,9 +283,9 @@ export default function Index({ posts, categories, filters, stats }) {
 
                 </div>
 
-                {posts.links.length > 3 && (
+                {stories.links.length > 3 && (
                     <div className="mt-6 flex flex-wrap justify-center gap-2">
-                        {posts.links.map((link, index) => (
+                        {stories.links.map((link, index) => (
                             <Link
                                 key={index}
                                 href={link.url || '#'}
@@ -299,7 +304,7 @@ export default function Index({ posts, categories, filters, stats }) {
             {confirmDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                     <div className="w-full max-w-sm rounded-2xl bg-white p-6">
-                        <h3 className="text-lg font-black">Delete post?</h3>
+                        <h3 className="text-lg font-black">Delete story?</h3>
                         <p className="mt-2 text-sm text-gray-500">
                             "{confirmDelete.title}" will be permanently removed. This can't be undone.
                         </p>

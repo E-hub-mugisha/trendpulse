@@ -24,19 +24,19 @@ export default function NewsCard({ post }) {
 
             <div className="mt-4">
 
-                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                    <span>
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider">
+                    <span className="text-[#0A599E]">
                         {post.category || 'Entertainment'}
                     </span>
 
-                    <span>•</span>
+                    <span className="text-gray-300">•</span>
 
-                    <span>
+                    <span className="text-gray-400">
                         {post.date || 'Latest'}
                     </span>
                 </div>
 
-                <h3 className="mt-2 text-xl font-bold leading-7 transition group-hover:text-gray-500">
+                <h3 className="mt-2 text-xl font-bold leading-7 text-black transition group-hover:text-[#0A599E]">
                     {post.title}
                 </h3>
 

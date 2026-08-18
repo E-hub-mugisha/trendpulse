@@ -4,16 +4,16 @@ export default function Hero() {
     return (
         <section className="relative overflow-hidden bg-black text-white">
 
-            <div className="absolute inset-0 opacity-30">
-                <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-white blur-[120px]" />
-                <div className="absolute -bottom-20 right-0 h-96 w-96 rounded-full bg-gray-500 blur-[140px]" />
+            <div className="absolute inset-0 opacity-40">
+                <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-[#0A599E] blur-[120px]" />
+                <div className="absolute -bottom-20 right-0 h-96 w-96 rounded-full bg-[#0A599E]/60 blur-[140px]" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-5 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
 
                 <div className="max-w-4xl">
 
-                    <div className="mb-7 inline-flex rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                    <div className="mb-7 inline-flex rounded-full border border-[#0A599E]/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#5BA3DB]">
                         Stories • People • Community
                     </div>
 
@@ -22,7 +22,7 @@ export default function Hero() {
                         <br />
                         Real people.
                         <br />
-                        <span className="text-gray-500">
+                        <span className="text-[#5BA3DB]">
                             Real conversations.
                         </span>
                     </h1>
@@ -37,7 +37,7 @@ export default function Hero() {
 
                         <Link
                             href="/youtube"
-                            className="rounded-full bg-white px-7 py-4 text-sm font-bold text-black transition hover:bg-gray-200"
+                            className="rounded-full bg-[#0A599E] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#0d6ab8]"
                         >
                             Watch Stories
                         </Link>

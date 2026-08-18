@@ -5,14 +5,15 @@ import PeopleStoryCard from '../../../Components/PeopleStoryCard';
 
 function SectionHeader({ title, viewAllHref }) {
     return (
-        <div className="mb-6 flex items-end justify-between border-b border-gray-100 pb-4">
-            <h2 className="text-2xl font-black tracking-tight">
+        <div className="mb-6 flex items-end justify-between border-b-2 border-black pb-4">
+            <h2 className="flex items-center gap-3 text-2xl font-black tracking-tight">
+                <span className="h-5 w-1.5 rounded-full bg-[#0A599E]" />
                 {title}
             </h2>
             {viewAllHref && (
                 <Link
                     href={viewAllHref}
-                    className="text-sm font-bold text-gray-400 hover:text-black"
+                    className="text-sm font-bold text-gray-400 transition hover:text-[#0A599E]"
                 >
                     View all →
                 </Link>
@@ -27,8 +28,8 @@ function StoryListRow({ story, rank }) {
             href={`/people/${story.slug}`}
             className="group flex items-center gap-4 py-4"
         >
-            <span className="w-6 shrink-0 text-2xl font-black text-gray-200">
-                {rank}
+            <span className="w-7 shrink-0 text-2xl font-black text-gray-200 transition group-hover:text-[#0A599E]">
+                {String(rank).padStart(2, '0')}
             </span>
 
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-200">
@@ -46,10 +47,10 @@ function StoryListRow({ story, rank }) {
             </div>
 
             <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#0A599E]">
                     {story.category || 'Relationship'}
                 </p>
-                <h3 className="mt-1 line-clamp-2 text-base font-bold leading-5 group-hover:text-gray-500">
+                <h3 className="mt-1 line-clamp-2 text-base font-bold leading-5 text-black transition group-hover:text-[#0A599E]">
                     {story.title}
                 </h3>
                 <p className="mt-1 text-xs text-gray-400">
@@ -98,7 +99,7 @@ export default function Index({
                         onClick={() => switchCategory(null)}
                         className={`rounded-full px-5 py-2 text-sm font-bold transition ${
                             !activeCategory
-                                ? 'bg-black text-white'
+                                ? 'bg-[#0A599E] text-white'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
@@ -112,7 +113,7 @@ export default function Index({
                             onClick={() => switchCategory(category.slug)}
                             className={`rounded-full px-5 py-2 text-sm font-bold transition ${
                                 activeCategory === category.slug
-                                    ? 'bg-black text-white'
+                                    ? 'bg-[#0A599E] text-white'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                         >
@@ -137,7 +138,7 @@ export default function Index({
                                 href={`/people/${featured.slug}`}
                                 className="group block overflow-hidden rounded-3xl bg-white"
                             >
-                                <div className="aspect-[16/9] overflow-hidden bg-gray-200">
+                                <div className="relative aspect-[16/9] overflow-hidden rounded-3xl bg-gray-200">
                                     {featured.featured_image ? (
                                         <img
                                             src={featured.featured_image}
@@ -149,31 +150,39 @@ export default function Index({
                                             Story
                                         </div>
                                     )}
+
+                                    <span className="absolute left-4 top-4 rounded-full bg-[#0A599E] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                                        Featured
+                                    </span>
                                 </div>
 
                                 <div className="pt-6">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-[#0A599E]">
                                         {featured.category || 'Relationship'}
                                     </p>
-                                    <h2 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
+                                    <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">
                                         {featured.title}
                                     </h2>
                                     <p className="mt-3 text-base leading-7 text-gray-500">
                                         {featured.excerpt}
                                     </p>
-                                    <div className="mt-4 text-sm font-bold">
-                                        Read their story →
+                                    <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-black transition group-hover:gap-2.5 group-hover:text-[#0A599E]">
+                                        Read their story
+                                        <span aria-hidden>→</span>
                                     </div>
                                 </div>
                             </Link>
 
                             {trending.length > 0 && (
-                                <div className="rounded-3xl bg-[#f7f7f5] p-6">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                        Trending Now
-                                    </h3>
+                                <div className="overflow-hidden rounded-3xl border border-gray-100 bg-[#f7f7f5]">
+                                    <div className="flex items-center gap-2 border-b border-gray-200 bg-black px-6 py-4">
+                                        <span className="h-2 w-2 rounded-full bg-[#0A599E]" />
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                                            Trending Now
+                                        </h3>
+                                    </div>
 
-                                    <div className="mt-1 divide-y divide-gray-200">
+                                    <div className="divide-y divide-gray-200 px-6">
                                         {trending.map((story, i) => (
                                             <StoryListRow
                                                 key={story.id}

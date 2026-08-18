@@ -22,13 +22,13 @@ export default function PeopleStoryCard({ story }) {
                 )}
 
                 {story.is_popular && (
-                    <span className="absolute left-4 top-4 rounded-full bg-black/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                    <span className="absolute left-4 top-4 rounded-full bg-[#0A599E] px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
                         Popular
                     </span>
                 )}
 
                 {!story.is_popular && story.trending_views_count > 0 && (
-                    <span className="absolute left-4 top-4 rounded-full bg-black/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                    <span className="absolute left-4 top-4 rounded-full bg-[#0A599E] px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
                         Trending
                     </span>
                 )}
@@ -38,7 +38,7 @@ export default function PeopleStoryCard({ story }) {
             <div className="p-6">
 
                 <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#0A599E]">
                         {story.category || 'Relationship'}
                     </p>
 
@@ -49,7 +49,7 @@ export default function PeopleStoryCard({ story }) {
                     )}
                 </div>
 
-                <h3 className="mt-2 text-xl font-bold">
+                <h3 className="mt-2 text-xl font-bold text-black">
                     {story.title}
                 </h3>
 
@@ -57,8 +57,9 @@ export default function PeopleStoryCard({ story }) {
                     {story.excerpt}
                 </p>
 
-                <div className="mt-5 text-sm font-bold">
-                    Read their story →
+                <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-black transition group-hover:gap-2.5 group-hover:text-[#0A599E]">
+                    Read their story
+                    <span aria-hidden>→</span>
                 </div>
 
             </div>

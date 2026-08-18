@@ -153,8 +153,8 @@ export default function Home({
 
 function EmptyState({ title, text }) {
     return (
-        <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-6 py-14 text-center">
-            <h3 className="text-lg font-bold">
+        <div className="rounded-3xl border border-dashed border-[#0A599E]/25 bg-[#0A599E]/5 px-6 py-14 text-center">
+            <h3 className="text-lg font-bold text-black">
                 {title}
             </h3>
 

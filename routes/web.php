@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\CommunityModerationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EntertainmentPostController;
+use App\Http\Controllers\Admin\PeopleStoryController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YoutubeVideoController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\UserPage\CommunityController;
 use App\Http\Controllers\UserPage\EntertainmentController;
@@ -11,6 +15,7 @@ use App\Http\Controllers\UserPage\HomeController;
 use App\Http\Controllers\UserPage\PeopleController;
 use App\Http\Controllers\UserPage\StorySubmissionController;
 use App\Http\Controllers\UserPage\YoutubeController;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +55,8 @@ Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
 Route::post('/share-your-story', [StorySubmissionController::class, 'store'])
     ->name('stories.store');
 
+Route::get('/search', [SearchController::class, 'search'])->name('search');
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -71,14 +78,44 @@ Route::middleware(['auth', 'admin'])
         ])->name('dashboard');
 
         Route::resource('youtube', YoutubeVideoController::class)
-        ->parameters(['youtube' => 'video'])
-        ->names('youtube');
+            ->parameters(['youtube' => 'video'])
+            ->names('youtube');
 
         Route::resource('entertainment', EntertainmentPostController::class)
-        ->parameters(['entertainment' => 'post'])
-        ->names('entertainment');
+            ->parameters(['entertainment' => 'post'])
+            ->names('entertainment');
+
+        Route::resource('people', PeopleStoryController::class)
+            ->parameters(['people' => 'story'])
+            ->names('people');
+
+        Route::resource('users', UserController::class)
+            ->except(['create', 'store'])
+            ->names('users');
+
+        // Community moderation
+        Route::prefix('community')->name('community.')->group(function () {
+            Route::get('/', [CommunityModerationController::class, 'index'])->name('index');
+            Route::get('/{post}', [CommunityModerationController::class, 'show'])->name('show');
+            Route::patch('/{post}/status', [CommunityModerationController::class, 'updateStatus'])->name('status');
+            Route::delete('/{post}', [CommunityModerationController::class, 'destroy'])->name('destroy');
+            Route::patch('/comments/{comment}/status', [CommunityModerationController::class, 'updateCommentStatus'])->name('comments.status');
+            Route::delete('/comments/{comment}', [CommunityModerationController::class, 'destroyComment'])->name('comments.destroy');
+        });
     });
 
-    
 
-require __DIR__.'/auth.php';
+    Route::get('/test-email', function () {
+    try {
+        Mail::raw('This is a test email from Laravel.', function ($message) {
+            $message->to('kabosierik@gmail.com')
+                    ->subject('Laravel SMTP Test');
+        });
+
+        return 'Email sent successfully!';
+    } catch (\Exception $e) {
+        return 'Email failed: ' . $e->getMessage();
+    }
+});
+
+require __DIR__ . '/auth.php';

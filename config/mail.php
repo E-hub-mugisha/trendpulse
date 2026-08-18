@@ -115,4 +115,6 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'story_submissions_to' => env('STORY_SUBMISSIONS_EMAIL', 'kabosierik@gmail.com'),
+
 ];

@@ -2,7 +2,9 @@ import { Link } from '@inertiajs/react';
 
 export default function ShareStoryCTA() {
     return (
-        <section className="bg-black text-white">
+        <section className="relative overflow-hidden bg-black text-white">
+
+            <div className="absolute inset-x-0 top-0 h-1 bg-[#0A599E]" />
 
             <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8">
 
@@ -10,7 +12,8 @@ export default function ShareStoryCTA() {
 
                     <div className="max-w-3xl">
 
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
+                        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#5BA3DB]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#0A599E]" />
                             Your voice matters
                         </p>
 
@@ -29,7 +32,7 @@ export default function ShareStoryCTA() {
 
                     <Link
                         href="/share-your-story"
-                        className="inline-flex shrink-0 rounded-full bg-white px-7 py-4 text-sm font-bold text-black"
+                        className="inline-flex shrink-0 rounded-full bg-[#0A599E] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#0d6ab8]"
                     >
                         Share Your Story →
                     </Link>

@@ -30,6 +30,19 @@ const SHARE_ICONS = {
     ),
 };
 
+function SidebarSection({ title, children }) {
+    return (
+        <div>
+            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0A599E]" />
+                {title}
+            </h3>
+
+            <div className="mt-1 divide-y divide-gray-200">{children}</div>
+        </div>
+    );
+}
+
 export default function Show({ post, relatedPosts, recentPosts, trendingPosts }) {
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -67,7 +80,7 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                 {/* Hero image */}
                 <div className="mx-auto max-w-7xl px-5 pt-8 sm:px-6 lg:px-8">
 
-                    <div className="aspect-[21/9] overflow-hidden rounded-3xl bg-gray-100">
+                    <div className="relative aspect-[21/9] overflow-hidden rounded-3xl bg-gray-100">
 
                         {post.featured_image ? (
                             <img
@@ -81,6 +94,10 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                             </div>
                         )}
 
+                        <span className="absolute left-5 top-5 rounded-full bg-[#0A599E] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                            {post.category || 'Entertainment'}
+                        </span>
+
                     </div>
 
                 </div>
@@ -92,30 +109,30 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
 
                         <div className="mx-auto w-full max-w-3xl">
 
-                            <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider text-gray-400">
+                            <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider">
 
-                                <span>
+                                <span className="text-[#0A599E]">
                                     {post.category || 'Entertainment'}
                                 </span>
 
-                                <span>•</span>
+                                <span className="text-gray-300">•</span>
 
-                                <span>{post.date}</span>
+                                <span className="text-gray-400">{post.date}</span>
 
-                                <span>•</span>
+                                <span className="text-gray-300">•</span>
 
-                                <span>
+                                <span className="text-gray-400">
                                     {post.views.toLocaleString()} views
                                 </span>
 
                             </div>
 
-                            <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+                            <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-black sm:text-6xl">
                                 {post.title}
                             </h1>
 
                             {post.excerpt && (
-                                <p className="mt-6 text-xl leading-8 text-gray-500">
+                                <p className="mt-6 border-l-2 border-[#0A599E] pl-5 text-xl leading-8 text-gray-500">
                                     {post.excerpt}
                                 </p>
                             )}
@@ -148,11 +165,11 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
 
                                     {shareLinks.map((link) => (
                                         
-                                      <a      key={link.key}
+                                        <a    key={link.key}
                                             href={link.href}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 transition hover:bg-black hover:text-white"
+                                            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-[#0A599E] hover:text-white"
                                         >
                                             {SHARE_ICONS[link.key]}
                                         </a>
@@ -161,7 +178,7 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                                     <button
                                         type="button"
                                         onClick={copyLink}
-                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 transition hover:bg-black hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-[#0A599E] hover:text-white"
                                         title="Copy link"
                                     >
                                         {SHARE_ICONS.link}
@@ -176,44 +193,38 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                             <aside className="rounded-3xl bg-[#f7f7f5] p-6 lg:sticky lg:top-8 lg:self-start">
 
                                 {hasTrending && (
-                                    <div>
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Trending Now
-                                        </h3>
+                                    <SidebarSection title="Trending Now">
+                                        {trendingPosts.map((item) => (
+                                            <Link
+                                                key={`trending-${item.id}`}
+                                                href={`/entertainment/${item.slug}`}
+                                                className="group flex gap-3 py-3"
+                                            >
+                                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-200">
+                                                    {item.featured_image ? (
+                                                        <img
+                                                            src={item.featured_image}
+                                                            alt={item.title}
+                                                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center text-[10px] text-gray-400">
+                                                            Post
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                        <div className="mt-1 divide-y divide-gray-200">
-                                            {trendingPosts.map((item) => (
-                                                <Link
-                                                    key={`trending-${item.id}`}
-                                                    href={`/entertainment/${item.slug}`}
-                                                    className="group flex gap-3 py-3"
-                                                >
-                                                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-200">
-                                                        {item.featured_image ? (
-                                                            <img
-                                                                src={item.featured_image}
-                                                                alt={item.title}
-                                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-full items-center justify-center text-[10px] text-gray-400">
-                                                                Post
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="min-w-0">
-                                                        <h4 className="line-clamp-2 text-sm font-bold leading-5 group-hover:text-gray-500">
-                                                            {item.title}
-                                                        </h4>
-                                                        <p className="mt-1 text-xs text-gray-400">
-                                                            {item.views.toLocaleString()} views
-                                                        </p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="line-clamp-2 text-sm font-bold leading-5 text-black group-hover:text-[#0A599E]">
+                                                        {item.title}
+                                                    </h4>
+                                                    <p className="mt-1 text-xs text-gray-400">
+                                                        {item.views.toLocaleString()} views
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </SidebarSection>
                                 )}
 
                                 {hasTrending && hasRecent && (
@@ -221,50 +232,44 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                                 )}
 
                                 {hasRecent && (
-                                    <div>
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Recent Posts
-                                        </h3>
+                                    <SidebarSection title="Recent Posts">
+                                        {recentPosts.map((item) => (
+                                            <Link
+                                                key={`recent-${item.id}`}
+                                                href={`/entertainment/${item.slug}`}
+                                                className="group flex gap-3 py-3"
+                                            >
+                                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-200">
+                                                    {item.featured_image ? (
+                                                        <img
+                                                            src={item.featured_image}
+                                                            alt={item.title}
+                                                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center text-[10px] text-gray-400">
+                                                            Post
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                        <div className="mt-1 divide-y divide-gray-200">
-                                            {recentPosts.map((item) => (
-                                                <Link
-                                                    key={`recent-${item.id}`}
-                                                    href={`/entertainment/${item.slug}`}
-                                                    className="group flex gap-3 py-3"
-                                                >
-                                                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-200">
-                                                        {item.featured_image ? (
-                                                            <img
-                                                                src={item.featured_image}
-                                                                alt={item.title}
-                                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-full items-center justify-center text-[10px] text-gray-400">
-                                                                Post
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="min-w-0">
-                                                        <h4 className="line-clamp-2 text-sm font-bold leading-5 group-hover:text-gray-500">
-                                                            {item.title}
-                                                        </h4>
-                                                        {item.published_at && (
-                                                            <p className="mt-1 text-xs text-gray-400">
-                                                                {new Date(item.published_at).toLocaleDateString('en-US', {
-                                                                    month: 'short',
-                                                                    day: 'numeric',
-                                                                    year: 'numeric',
-                                                                })}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="line-clamp-2 text-sm font-bold leading-5 text-black group-hover:text-[#0A599E]">
+                                                        {item.title}
+                                                    </h4>
+                                                    {item.published_at && (
+                                                        <p className="mt-1 text-xs text-gray-400">
+                                                            {new Date(item.published_at).toLocaleDateString('en-US', {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            })}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </SidebarSection>
                                 )}
 
                             </aside>
@@ -280,7 +285,8 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
 
                         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
 
-                            <h2 className="text-3xl font-black">
+                            <h2 className="flex items-center gap-3 text-3xl font-black text-black">
+                                <span className="h-6 w-1.5 rounded-full bg-[#0A599E]" />
                                 You may also like
                             </h2>
 
@@ -292,7 +298,7 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
                                         href={`/entertainment/${item.slug}`}
                                         className="group"
                                     >
-                                        <h3 className="text-xl font-bold group-hover:text-gray-500">
+                                        <h3 className="text-xl font-bold text-black group-hover:text-[#0A599E]">
                                             {item.title}
                                         </h3>
 
