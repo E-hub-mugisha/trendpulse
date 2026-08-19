@@ -155,6 +155,9 @@ export default function Footer() {
                     </p>
 
                     <div className="flex gap-6">
+                        <Link href="/about" className="transition hover:text-[#5BA3DB]">
+                            About
+                        </Link>
                         <Link href="/privacy" className="transition hover:text-[#5BA3DB]">
                             Privacy
                         </Link>

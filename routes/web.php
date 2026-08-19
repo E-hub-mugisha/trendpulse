@@ -15,13 +15,15 @@ use App\Http\Controllers\UserPage\HomeController;
 use App\Http\Controllers\UserPage\PeopleController;
 use App\Http\Controllers\UserPage\StorySubmissionController;
 use App\Http\Controllers\UserPage\YoutubeController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
-
+Route::get('/about', [HomeController::class, 'about'])
+    ->name('about');
 Route::get('/stories', [YoutubeController::class, 'index'])
     ->name('youtube.index');
 
@@ -56,6 +58,10 @@ Route::post('/share-your-story', [StorySubmissionController::class, 'store'])
     ->name('stories.store');
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
+
+Route::get('/contact', [ContactController::class, 'create'])->name('contact');
+
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -105,11 +111,11 @@ Route::middleware(['auth', 'admin'])
     });
 
 
-    Route::get('/test-email', function () {
+Route::get('/test-email', function () {
     try {
         Mail::raw('This is a test email from Laravel.', function ($message) {
             $message->to('kabosierik@gmail.com')
-                    ->subject('Laravel SMTP Test');
+                ->subject('Laravel SMTP Test');
         });
 
         return 'Email sent successfully!';

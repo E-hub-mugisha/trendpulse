@@ -119,4 +119,9 @@ return [
         'STORY_SUBMISSIONS_TO',
         'kabosierik@gmail.com'
     ),
+
+    'contact_address' => env(
+        'MAIL_CONTACT_ADDRESS',
+        env('MAIL_FROM_ADDRESS')
+    ),
 ];

@@ -80,4 +80,9 @@ class HomeController extends Controller
             'communityPosts' => $communityPosts,
         ]);
     }
+
+    public function about()
+    {
+        return Inertia::render('UserPages/About');
+    }
 }
