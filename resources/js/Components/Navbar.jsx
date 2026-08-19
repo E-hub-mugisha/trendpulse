@@ -24,7 +24,7 @@ function useDebouncedValue(value, delay) {
 }
 
 const SECTION_ICONS = {
-    youtube: PlayCircle,
+    stories: PlayCircle,
     entertainment: Newspaper,
     people: Users,
 };
@@ -74,17 +74,17 @@ function SearchOverlay({ open, onClose, categories }) {
     const hasResults = results && (
         results.people.length > 0 ||
         results.entertainment.length > 0 ||
-        results.youtube.length > 0
+        results.stories.length > 0
     );
 
     const resultGroups = [
         { key: 'people', label: 'People Stories', items: results?.people || [] },
         { key: 'entertainment', label: 'Entertainment', items: results?.entertainment || [] },
-        { key: 'youtube', label: 'YouTube', items: results?.youtube || [] },
+        { key: 'stories', label: 'Stories', items: results?.stories || [] },
     ];
 
     const categorySections = [
-        { key: 'youtube', label: 'YouTube', base: '/youtube' },
+        { key: 'stories', label: 'Stories', base: '/stories' },
         { key: 'entertainment', label: 'Entertainment', base: '/entertainment' },
         { key: 'people', label: 'People', base: '/people' },
     ];
@@ -239,7 +239,7 @@ export default function Navbar() {
     const [searchOpen, setSearchOpen] = useState(false);
 
     const navigation = [
-        { name: 'YouTube', href: '/youtube' },
+        { name: 'stories', href: '/stories' },
         { name: 'Entertainment', href: '/entertainment' },
         { name: 'People', href: '/people' },
         { name: 'Community', href: '/community' },

@@ -22,7 +22,7 @@ use Inertia\Inertia;
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
 
-Route::get('/youtube', [YoutubeController::class, 'index'])
+Route::get('/stories', [YoutubeController::class, 'index'])
     ->name('youtube.index');
 
 Route::get('/youtube/{video}', [YoutubeController::class, 'show'])
