@@ -19,6 +19,18 @@ class CategorySeeder extends Seeder
             'Lifestyle',
             'Culture',
             'Community',
+            'Health & Wellness',
+            'Personal Growth',
+            'Family & Parenting',
+            'Education',
+            'Career & Work',
+            'Travel & Adventure',
+            'Food & Recipes',
+            'Fashion & Beauty',
+            'Technology & Gadgets',
+            'Sports & Fitness',
+            'Finance & Money',
+            'Hobbies & Interests',
         ];
 
         foreach ($categories as $name) {

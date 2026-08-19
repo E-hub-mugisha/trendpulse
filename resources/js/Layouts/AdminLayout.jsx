@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const MENU = [
-    { label: 'Dashboard', href: '/admin', icon: LayoutGrid, exact: true },
+    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid, exact: true },
     { label: 'YouTube', href: '/admin/youtube', icon: PlayCircle },
     { label: 'Entertainment', href: '/admin/entertainment', icon: Newspaper },
     { label: 'People', href: '/admin/people', icon: Users },
@@ -38,8 +38,15 @@ function SidebarContent({ currentUrl, auth, onNavigate }) {
     return (
         <>
             <div className="border-b border-gray-100 p-6">
-                <Link href="/admin" className="text-2xl font-black tracking-tight" onClick={onNavigate}>
-                    Trend<span className="text-red-600">Pulse</span>
+                <Link href="/admin/dashboard" className="flex items-center gap-2.5" onClick={onNavigate}>
+                    <img
+                        src="/assets/images/logo.png"
+                        alt="TrendPulse"
+                        className="h-8 w-8 shrink-0 object-contain"
+                    />
+                    <span className="text-2xl font-black tracking-tight">
+                        Trend<span style={{ color: '#0A599E' }}>Pulse</span>
+                    </span>
                 </Link>
                 <p className="mt-1 text-xs font-medium text-gray-400">
                     Administration
@@ -187,7 +194,10 @@ export default function AdminLayout({ children, title }) {
                                     className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100"
                                 >
                                     <Bell className="h-5 w-5" strokeWidth={2} />
-                                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+                                    <span
+                                        className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full"
+                                        style={{ backgroundColor: '#0A599E' }}
+                                    />
                                 </button>
 
                                 <div className="relative">

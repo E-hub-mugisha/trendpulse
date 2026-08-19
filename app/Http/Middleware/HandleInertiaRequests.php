@@ -35,10 +35,15 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'categories' => fn () => Category::query()
+            'categories' => fn() => Category::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']),
+
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+            ],
         ];
     }
 }

@@ -2,7 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import SectionHeading from '../../../Components/SectionHeading';
 
-const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@YourChannel';
+const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@TrendPulse_Global/featured';
 
 function getYoutubeUrl(video) {
     if (video.youtube_id) return `https://www.youtube.com/watch?v=${video.youtube_id}`;

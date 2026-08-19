@@ -258,9 +258,14 @@ export default function Navbar() {
                 <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
 
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0A599E] text-sm font-black text-white">
+                        {/* <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0A599E] text-sm font-black text-white">
                             T
-                        </div>
+                        </div> */}
+                        <img
+                            src="/assets/images/logo.png"
+                            alt="TrendPulse Logo"
+                            className="h-9 w-auto"
+                        />
                         <span className="text-xl font-black tracking-tight text-black">
                             Trend<span className="text-[#0A599E]">Pulse</span>
                         </span>

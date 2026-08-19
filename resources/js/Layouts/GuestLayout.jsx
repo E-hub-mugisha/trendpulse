@@ -6,7 +6,7 @@ export default function GuestLayout({ children }) {
         <div className="flex min-h-screen flex-col items-center justify-center bg-[#f7f7f5] px-5 py-10 sm:px-6 lg:px-8">
 
             <Link href="/" className="mb-8 flex items-center gap-2">
-                <ApplicationLogo className="h-9 w-9 fill-current text-black" />
+                <img src="/assets/images/logo.png" alt="TrendPulse Logo" className="h-10 w-auto" />
                 <span className="text-lg font-black tracking-tight">
                     TrendPulse
                 </span>

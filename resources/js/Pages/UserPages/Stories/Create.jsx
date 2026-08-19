@@ -1,26 +1,23 @@
-import { Head, useForm } from '@inertiajs/react';
-import PublicLayout from '../../Layouts/PublicLayout';
+import { Head, useForm, usePage } from "@inertiajs/react";
+import PublicLayout from "../../Layouts/PublicLayout";
 
 export default function Create({ categories }) {
-    const {
-        data,
-        setData,
-        post,
-        processing,
-        errors,
-        recentlySuccessful,
-    } = useForm({
-        name: '',
-        email: '',
-        title: '',
-        story: '',
+    const { flash } = usePage().props;
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: "",
+        email: "",
+        title: "",
+        story: "",
         allow_contact: false,
         allow_publication: true,
     });
 
     const submit = (event) => {
         event.preventDefault();
-        post('/share-your-story');
+        post("/share-your-story", {
+            onSuccess: () => reset(),
+        });
     };
 
     const storyLength = data.story.trim().length;
@@ -28,10 +25,13 @@ export default function Create({ categories }) {
 
     return (
         <PublicLayout title="Share Your Story">
-
             <Head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossOrigin="true"
+                />
                 <link
                     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,480;0,9..144,600;1,9..144,480&family=Inter:wght@400;500;600;700&display=swap"
                     rel="stylesheet"
@@ -207,7 +207,6 @@ export default function Create({ categories }) {
             </Head>
 
             <div className="story-page">
-
                 {/* HERO */}
                 <section className="mx-auto max-w-5xl px-5 pt-20 pb-16 sm:px-6 lg:px-8">
                     <div className="max-w-2xl">
@@ -217,13 +216,26 @@ export default function Create({ categories }) {
                         <h1 className="display mt-2 text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
                             Every life
                             <br />
-                            writes a chapter <span style={{ color: 'var(--blue)', fontStyle: 'italic' }}>worth reading</span>.
+                            writes a chapter{" "}
+                            <span
+                                style={{
+                                    color: "var(--blue)",
+                                    fontStyle: "italic",
+                                }}
+                            >
+                                worth reading
+                            </span>
+                            .
                         </h1>
 
-                        <p className="mt-6 text-lg leading-8" style={{ color: 'var(--ink-soft)' }}>
-                            Tell us about a relationship, a turning point, a lesson learned the
-                            hard way, or a journey still in progress. We read every submission,
-                            and yours could be the one that reaches someone who needs it.
+                        <p
+                            className="mt-6 text-lg leading-8"
+                            style={{ color: "var(--ink-soft)" }}
+                        >
+                            Tell us about a relationship, a turning point, a
+                            lesson learned the hard way, or a journey still in
+                            progress. We read every submission, and yours could
+                            be the one that reaches someone who needs it.
                         </p>
                     </div>
                 </section>
@@ -234,24 +246,24 @@ export default function Create({ categories }) {
                         <div className="reason-card pt-5">
                             <span className="quote-mark">“</span>
                             <p className="display mt-1 text-lg leading-snug">
-                                Your journey might be the exact encouragement someone else is
-                                looking for today.
+                                Your journey might be the exact encouragement
+                                someone else is looking for today.
                             </p>
                         </div>
 
                         <div className="reason-card pt-5">
                             <span className="quote-mark">“</span>
                             <p className="display mt-1 text-lg leading-snug">
-                                Join a community that treats every kind of experience as worth
-                                telling.
+                                Join a community that treats every kind of
+                                experience as worth telling.
                             </p>
                         </div>
 
                         <div className="reason-card pt-5">
                             <span className="quote-mark">“</span>
                             <p className="display mt-1 text-lg leading-snug">
-                                What you've lived through can become someone else's wisdom
-                                further down the road.
+                                What you've lived through can become someone
+                                else's wisdom further down the road.
                             </p>
                         </div>
                     </div>
@@ -259,30 +271,45 @@ export default function Create({ categories }) {
 
                 {/* FORM */}
                 <section className="mx-auto max-w-4xl px-5 pb-24 sm:px-6 lg:px-8">
-
-                    {recentlySuccessful && (
+                    {flash?.success && (
                         <div
                             className="mb-8 rounded-lg border px-5 py-4 text-sm font-medium"
                             style={{
-                                borderColor: 'var(--blue)',
-                                background: 'var(--blue-tint)',
-                                color: 'var(--blue-dark)',
+                                borderColor: "var(--blue)",
+                                background: "var(--blue-tint)",
+                                color: "var(--blue-dark)",
                             }}
                         >
-                            Thank you — your story has been sent to our team and is awaiting
-                            review.
+                            {flash.success}
                         </div>
                     )}
 
-                    <form onSubmit={submit} className="manuscript-card rounded-2xl p-6 sm:p-12">
+                    {flash?.error && (
+                        <div
+                            className="mb-8 rounded-lg border px-5 py-4 text-sm font-medium"
+                            style={{
+                                borderColor: "#c0392b",
+                                background: "#fdecea",
+                                color: "#c0392b",
+                            }}
+                        >
+                            {flash.error}
+                        </div>
+                    )}
 
+                    <form
+                        onSubmit={submit}
+                        className="manuscript-card rounded-2xl p-6 sm:p-12"
+                    >
                         <p className="eyebrow mb-8">Write your story</p>
 
                         <div className="grid gap-8 sm:grid-cols-2">
                             <Field label="Your name" error={errors.name}>
                                 <input
                                     value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
                                     type="text"
                                     placeholder="Jane Doe"
                                     className="field-input"
@@ -292,7 +319,9 @@ export default function Create({ categories }) {
                             <Field label="Email" error={errors.email}>
                                 <input
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
                                     type="email"
                                     placeholder="you@example.com"
                                     className="field-input"
@@ -304,7 +333,9 @@ export default function Create({ categories }) {
                             <Field label="Story title" error={errors.title}>
                                 <input
                                     value={data.title}
-                                    onChange={(e) => setData('title', e.target.value)}
+                                    onChange={(e) =>
+                                        setData("title", e.target.value)
+                                    }
                                     type="text"
                                     placeholder="Give your story a title"
                                     className="field-input"
@@ -314,10 +345,16 @@ export default function Create({ categories }) {
 
                         <div className="mt-10">
                             <div className="flex items-baseline justify-between">
-                                <label className="field-label">Your story</label>
+                                <label className="field-label">
+                                    Your story
+                                </label>
                                 <span
                                     className="text-xs"
-                                    style={{ color: meetsMinimum ? 'var(--blue)' : '#A6ADB4' }}
+                                    style={{
+                                        color: meetsMinimum
+                                            ? "var(--blue)"
+                                            : "#A6ADB4",
+                                    }}
                                 >
                                     {storyLength}/50 characters minimum
                                 </span>
@@ -326,28 +363,45 @@ export default function Create({ categories }) {
                             <div className="mt-3">
                                 <textarea
                                     value={data.story}
-                                    onChange={(e) => setData('story', e.target.value)}
+                                    onChange={(e) =>
+                                        setData("story", e.target.value)
+                                    }
                                     placeholder="Once upon a time…"
                                     className="manuscript-textarea"
                                 />
                             </div>
 
                             {errors.story && (
-                                <p className="mt-2 text-sm" style={{ color: 'var(--blue)' }}>
+                                <p
+                                    className="mt-2 text-sm"
+                                    style={{ color: "var(--blue)" }}
+                                >
                                     {errors.story}
                                 </p>
                             )}
                         </div>
 
-                        <div className="mt-10 space-y-4 border-t pt-8" style={{ borderColor: '#E1E5EA' }}>
+                        <div
+                            className="mt-10 space-y-4 border-t pt-8"
+                            style={{ borderColor: "#E1E5EA" }}
+                        >
                             <label className="checkbox-row flex cursor-pointer gap-3">
                                 <input
                                     type="checkbox"
                                     checked={data.allow_publication}
-                                    onChange={(e) => setData('allow_publication', e.target.checked)}
+                                    onChange={(e) =>
+                                        setData(
+                                            "allow_publication",
+                                            e.target.checked,
+                                        )
+                                    }
                                 />
-                                <span className="text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
-                                    I agree that my story may be published after review.
+                                <span
+                                    className="text-sm leading-6"
+                                    style={{ color: "var(--ink-soft)" }}
+                                >
+                                    I agree that my story may be published after
+                                    review.
                                 </span>
                             </label>
 
@@ -355,9 +409,17 @@ export default function Create({ categories }) {
                                 <input
                                     type="checkbox"
                                     checked={data.allow_contact}
-                                    onChange={(e) => setData('allow_contact', e.target.checked)}
+                                    onChange={(e) =>
+                                        setData(
+                                            "allow_contact",
+                                            e.target.checked,
+                                        )
+                                    }
                                 />
-                                <span className="text-sm leading-6" style={{ color: 'var(--ink-soft)' }}>
+                                <span
+                                    className="text-sm leading-6"
+                                    style={{ color: "var(--ink-soft)" }}
+                                >
                                     You may contact me about my submission.
                                 </span>
                             </label>
@@ -368,12 +430,11 @@ export default function Create({ categories }) {
                             disabled={processing}
                             className="submit-btn mt-10 w-full rounded-full px-6 py-4 text-sm font-semibold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-10"
                         >
-                            {processing ? 'Sending…' : 'Submit my story'}
+                            {processing ? "Sending…" : "Submit my story"}
                         </button>
                     </form>
                 </section>
             </div>
-
         </PublicLayout>
     );
 }
@@ -384,7 +445,7 @@ function Field({ label, error, children }) {
             <label className="field-label">{label}</label>
             <div className="mt-2">{children}</div>
             {error && (
-                <p className="mt-2 text-sm" style={{ color: 'var(--blue)' }}>
+                <p className="mt-2 text-sm" style={{ color: "var(--blue)" }}>
                     {error}
                 </p>
             )}
