@@ -1,5 +1,3 @@
-// resources/js/Components/Navbar.jsx
-
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -239,7 +237,7 @@ export default function Navbar() {
     const [searchOpen, setSearchOpen] = useState(false);
 
     const navigation = [
-        { name: 'stories', href: '/stories' },
+        { name: 'Stories', href: '/stories' },
         { name: 'Entertainment', href: '/entertainment' },
         { name: 'People', href: '/people' },
         { name: 'Community', href: '/community' },

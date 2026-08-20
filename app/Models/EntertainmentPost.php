@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class EntertainmentPost extends Model
 {
@@ -85,5 +86,12 @@ class EntertainmentPost extends Model
     {
         $this->increment('views');
         $this->postViews()->create(['ip_address' => $ip]);
+    }
+
+    protected function featuredImage(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? asset(ltrim($value, '/')) : null,
+        );
     }
 }

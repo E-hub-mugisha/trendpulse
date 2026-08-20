@@ -5,6 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -87,5 +88,12 @@ class PeopleStory extends Model
     {
         $this->increment('views');
         $this->storyViews()->create(['ip_address' => $ip]);
+    }
+
+    protected function featuredImage(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $value ? asset(ltrim($value, '/')) : null,
+        );
     }
 }
