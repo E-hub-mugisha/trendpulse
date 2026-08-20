@@ -1,0 +1,80 @@
+name: Deploy TrendPulse to SmarterASP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Laravel
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Get the latest code
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # 2. Setup PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, pdo_mysql, tokenizer, xml
+          tools: composer
+
+      # 3. Install Laravel dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      # 4. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 5. Install frontend dependencies
+      - name: Install NPM dependencies
+        run: npm ci
+
+      # 6. Build Vite assets
+      - name: Build frontend
+        run: npm run build
+
+      # 7. Verify build files
+      - name: Check Vite build
+        run: |
+          echo "===== BUILD DIRECTORY ====="
+          find public/build -type f | sort
+
+      # 8. Deploy Laravel public directory
+      - name: Deploy to SmarterASP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
+          # IMPORTANT:
+          # Deploy Laravel's public directory
+          local-dir: ./public/
+
+          # Change this to your SmarterASP website root
+          server-dir: ./
+
+          protocol: ftp
+          port: 21
+
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env
+            **/storage/**
+            **/hot
+            **/phpunit.xml
+            **/tests/**
+          
+          log-level: verbose
+          timeout: 120000
