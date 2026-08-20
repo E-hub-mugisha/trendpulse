@@ -1,5 +1,36 @@
 import { Head, useForm, usePage } from "@inertiajs/react";
+import { useEffect, useRef, useState } from "react";
 import PublicLayout from "../../Layouts/PublicLayout";
+
+/**
+ * Carousel images — download these from Freepik (free tier, attribution required)
+ * and drop them into /public/images/story-carousel/ using the filenames below.
+ * Good search terms on freepik.com to match the mood of this page:
+ *   - "african family storytelling"
+ *   - "community storytelling circle"
+ *   - "happy african family portrait"
+ *   - "grandmother telling story to children"
+ * Freepik's free license requires a visible credit line (already added in the footer below) —
+ * see https://www.freepik.com/free-license for the exact wording once you pick your images.
+ */
+const CAROUSEL_SLIDES = [
+    {
+        image: "/assets/images/story-carousel/family-1.jpg",
+        caption: "Every family carries a story worth telling.",
+    },
+    {
+        image: "/assets/images/story-carousel/community-1.jpg",
+        caption: "Stories that travel from one generation to the next.",
+    },
+    {
+        image: "/assets/images/story-carousel/elders-1.jpg",
+        caption: "Wisdom, shared out loud.",
+    },
+    {
+        image: "/assets/images/story-carousel/children-1.jpg",
+        caption: "The next chapter starts with you.",
+    },
+];
 
 export default function Create({ categories }) {
     const { flash } = usePage().props;
@@ -22,6 +53,25 @@ export default function Create({ categories }) {
 
     const storyLength = data.story.trim().length;
     const meetsMinimum = storyLength >= 50;
+
+    // --- Carousel state ---
+    const [slide, setSlide] = useState(0);
+    const timerRef = useRef(null);
+
+    useEffect(() => {
+        timerRef.current = setInterval(() => {
+            setSlide((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
+        }, 5000);
+        return () => clearInterval(timerRef.current);
+    }, []);
+
+    const goToSlide = (index) => {
+        clearInterval(timerRef.current);
+        setSlide(index);
+        timerRef.current = setInterval(() => {
+            setSlide((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
+        }, 5000);
+    };
 
     return (
         <PublicLayout title="Share Your Story">
@@ -89,16 +139,6 @@ export default function Create({ categories }) {
                         box-shadow: 0 30px 60px -35px rgba(10, 10, 10, 0.25);
                         position: relative;
                     }
-
-                    // .story-page .manuscript-card::before {
-                    //     content: '';
-                    //     position: absolute;
-                    //     top: 0;
-                    //     left: 34px;
-                    //     width: 1px;
-                    //     height: 100%;
-                    //     background: var(--blue-tint);
-                    // }
 
                     .story-page label.field-label {
                         font-family: 'Fraunces', serif;
@@ -203,74 +243,147 @@ export default function Create({ categories }) {
                     .story-page .submit-btn:active:not(:disabled) {
                         transform: scale(0.99);
                     }
+
+                    /* --- Banner carousel --- */
+                    .story-page .banner-carousel {
+                        position: relative;
+                        height: 62vh;
+                        min-height: 420px;
+                        max-height: 620px;
+                        overflow: hidden;
+                        background: var(--ink);
+                    }
+
+                    .story-page .banner-slide {
+                        position: absolute;
+                        inset: 0;
+                        background-size: cover;
+                        background-position: center;
+                        opacity: 0;
+                        transition: opacity 1s ease-in-out;
+                    }
+
+                    .story-page .banner-slide.is-active {
+                        opacity: 1;
+                    }
+
+                    .story-page .banner-overlay {
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(
+                            180deg,
+                            rgba(10, 10, 10, 0.35) 0%,
+                            rgba(10, 10, 10, 0.15) 40%,
+                            rgba(10, 10, 10, 0.75) 100%
+                        );
+                    }
+
+                    .story-page .banner-content {
+                        position: relative;
+                        z-index: 2;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+                        padding: 3rem 1.5rem 3.5rem;
+                        color: #fff;
+                    }
+
+                    .story-page .banner-caption {
+                        font-family: 'Fraunces', serif;
+                        font-weight: 480;
+                        font-style: italic;
+                        font-size: 1.15rem;
+                        opacity: 0.9;
+                        min-height: 1.6em;
+                    }
+
+                    .story-page .banner-dots {
+                        position: absolute;
+                        z-index: 3;
+                        right: 1.5rem;
+                        bottom: 1.75rem;
+                        display: flex;
+                        gap: 0.5rem;
+                    }
+
+                    .story-page .banner-dot {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 999px;
+                        background: rgba(255, 255, 255, 0.4);
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        padding: 0;
+                    }
+
+                    .story-page .banner-dot.is-active {
+                        width: 22px;
+                        background: #fff;
+                    }
+
+                    .story-page .image-credit {
+                        font-size: 0.68rem;
+                        color: #9AA1A8;
+                        letter-spacing: 0.02em;
+                    }
+
+                    .story-page .content-col {
+                        position: relative;
+                    }
+
+                    @media (min-width: 1024px) {
+                        .story-page .form-col {
+                            position: sticky;
+                            top: 2rem;
+                            align-self: start;
+                        }
+                    }
                 `}</style>
             </Head>
 
             <div className="story-page">
-                {/* HERO */}
-                <section className="mx-auto max-w-5xl px-5 pt-20 pb-16 sm:px-6 lg:px-8">
-                    <div className="max-w-2xl">
-                        <p className="eyebrow">Your voice matters</p>
-                        <div className="hero-rule mt-4 mb-6" />
-
-                        <h1 className="display mt-2 text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
-                            Every life
-                            <br />
-                            writes a chapter{" "}
-                            <span
-                                style={{
-                                    color: "var(--blue)",
-                                    fontStyle: "italic",
-                                }}
-                            >
-                                worth reading
-                            </span>
-                            .
+                {/* BANNER CAROUSEL */}
+                <div className="banner-carousel">
+                    {CAROUSEL_SLIDES.map((s, i) => (
+                        <div
+                            key={s.image}
+                            className={`banner-slide${i === slide ? " is-active" : ""}`}
+                            style={{ backgroundImage: `url(${s.image})` }}
+                        />
+                    ))}
+                    <div className="banner-overlay" />
+                    <div className="banner-content mx-auto w-full max-w-5xl">
+                        <p className="eyebrow" style={{ color: "#fff", opacity: 0.85 }}>
+                            Your voice matters
+                        </p>
+                        <h1 className="display mt-3 text-4xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
+                            Every life writes a chapter{" "}
+                            <span style={{ fontStyle: "italic" }}>worth reading</span>.
                         </h1>
-
-                        <p
-                            className="mt-6 text-lg leading-8"
-                            style={{ color: "var(--ink-soft)" }}
-                        >
-                            Tell us about a relationship, a turning point, a
-                            lesson learned the hard way, or a journey still in
-                            progress. We read every submission, and yours could
-                            be the one that reaches someone who needs it.
+                        <p className="banner-caption mt-4">
+                            {CAROUSEL_SLIDES[slide].caption}
                         </p>
                     </div>
-                </section>
-
-                {/* WHY SHARE — marginalia, not a numbered sequence */}
-                <section className="mx-auto max-w-5xl px-5 pb-16 sm:px-6 lg:px-8">
-                    <div className="grid gap-10 sm:grid-cols-3">
-                        <div className="reason-card pt-5">
-                            <span className="quote-mark">“</span>
-                            <p className="display mt-1 text-lg leading-snug">
-                                Your journey might be the exact encouragement
-                                someone else is looking for today.
-                            </p>
-                        </div>
-
-                        <div className="reason-card pt-5">
-                            <span className="quote-mark">“</span>
-                            <p className="display mt-1 text-lg leading-snug">
-                                Join a community that treats every kind of
-                                experience as worth telling.
-                            </p>
-                        </div>
-
-                        <div className="reason-card pt-5">
-                            <span className="quote-mark">“</span>
-                            <p className="display mt-1 text-lg leading-snug">
-                                What you've lived through can become someone
-                                else's wisdom further down the road.
-                            </p>
-                        </div>
+                    <div className="banner-dots">
+                        {CAROUSEL_SLIDES.map((s, i) => (
+                            <button
+                                key={s.image}
+                                type="button"
+                                aria-label={`Go to slide ${i + 1}`}
+                                className={`banner-dot${i === slide ? " is-active" : ""}`}
+                                onClick={() => goToSlide(i)}
+                            />
+                        ))}
                     </div>
-                </section>
+                </div>
+                <p className="image-credit mx-auto max-w-5xl px-5 pt-2 sm:px-6 lg:px-8">
+                    Photos via Freepik
+                </p>
 
-                {/* FORM */}
-                <section className="mx-auto max-w-4xl px-5 pb-24 sm:px-6 lg:px-8">
+                {/* CONTENT + FORM GRID */}
+                <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
                     {flash?.success && (
                         <div
                             className="mb-8 rounded-lg border px-5 py-4 text-sm font-medium"
@@ -297,142 +410,193 @@ export default function Create({ categories }) {
                         </div>
                     )}
 
-                    <form
-                        onSubmit={submit}
-                        className="manuscript-card rounded-2xl p-6 sm:p-12"
-                    >
-                        <p className="eyebrow mb-8">Write your story</p>
+                    <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
+                        {/* LEFT: content / why share */}
+                        <div className="content-col lg:col-span-2">
+                            <p className="eyebrow">Why share your story</p>
+                            <div className="hero-rule mt-4 mb-8" />
 
-                        <div className="grid gap-8 sm:grid-cols-2">
-                            <Field label="Your name" error={errors.name}>
-                                <input
-                                    value={data.name}
-                                    onChange={(e) =>
-                                        setData("name", e.target.value)
-                                    }
-                                    type="text"
-                                    placeholder="Jane Doe"
-                                    className="field-input"
-                                />
-                            </Field>
+                            <p
+                                className="text-lg leading-8"
+                                style={{ color: "var(--ink-soft)" }}
+                            >
+                                Tell us about a relationship, a turning point, a
+                                lesson learned the hard way, or a journey still
+                                in progress. We read every submission, and
+                                yours could be the one that reaches someone who
+                                needs it.
+                            </p>
 
-                            <Field label="Email" error={errors.email}>
-                                <input
-                                    value={data.email}
-                                    onChange={(e) =>
-                                        setData("email", e.target.value)
-                                    }
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    className="field-input"
-                                />
-                            </Field>
-                        </div>
+                            <div className="mt-10 space-y-8">
+                                <div className="reason-card pt-5">
+                                    <span className="quote-mark">"</span>
+                                    <p className="display mt-1 text-lg leading-snug">
+                                        Your journey might be the exact
+                                        encouragement someone else is looking
+                                        for today.
+                                    </p>
+                                </div>
 
-                        <div className="mt-8">
-                            <Field label="Story title" error={errors.title}>
-                                <input
-                                    value={data.title}
-                                    onChange={(e) =>
-                                        setData("title", e.target.value)
-                                    }
-                                    type="text"
-                                    placeholder="Give your story a title"
-                                    className="field-input"
-                                />
-                            </Field>
-                        </div>
+                                <div className="reason-card pt-5">
+                                    <span className="quote-mark">"</span>
+                                    <p className="display mt-1 text-lg leading-snug">
+                                        Join a community that treats every
+                                        kind of experience as worth telling.
+                                    </p>
+                                </div>
 
-                        <div className="mt-10">
-                            <div className="flex items-baseline justify-between">
-                                <label className="field-label">
-                                    Your story
-                                </label>
-                                <span
-                                    className="text-xs"
-                                    style={{
-                                        color: meetsMinimum
-                                            ? "var(--blue)"
-                                            : "#A6ADB4",
-                                    }}
-                                >
-                                    {storyLength}/50 characters minimum
-                                </span>
+                                <div className="reason-card pt-5">
+                                    <span className="quote-mark">"</span>
+                                    <p className="display mt-1 text-lg leading-snug">
+                                        What you've lived through can become
+                                        someone else's wisdom further down the
+                                        road.
+                                    </p>
+                                </div>
                             </div>
-
-                            <div className="mt-3">
-                                <textarea
-                                    value={data.story}
-                                    onChange={(e) =>
-                                        setData("story", e.target.value)
-                                    }
-                                    placeholder="Once upon a time…"
-                                    className="manuscript-textarea"
-                                />
-                            </div>
-
-                            {errors.story && (
-                                <p
-                                    className="mt-2 text-sm"
-                                    style={{ color: "var(--blue)" }}
-                                >
-                                    {errors.story}
-                                </p>
-                            )}
                         </div>
 
-                        <div
-                            className="mt-10 space-y-4 border-t pt-8"
-                            style={{ borderColor: "#E1E5EA" }}
-                        >
-                            <label className="checkbox-row flex cursor-pointer gap-3">
-                                <input
-                                    type="checkbox"
-                                    checked={data.allow_publication}
-                                    onChange={(e) =>
-                                        setData(
-                                            "allow_publication",
-                                            e.target.checked,
-                                        )
-                                    }
-                                />
-                                <span
-                                    className="text-sm leading-6"
-                                    style={{ color: "var(--ink-soft)" }}
-                                >
-                                    I agree that my story may be published after
-                                    review.
-                                </span>
-                            </label>
+                        {/* RIGHT: form */}
+                        <div className="form-col lg:col-span-3">
+                            <form
+                                onSubmit={submit}
+                                className="manuscript-card rounded-2xl p-6 sm:p-10"
+                            >
+                                <p className="eyebrow mb-8">Share your story</p>
 
-                            <label className="checkbox-row flex cursor-pointer gap-3">
-                                <input
-                                    type="checkbox"
-                                    checked={data.allow_contact}
-                                    onChange={(e) =>
-                                        setData(
-                                            "allow_contact",
-                                            e.target.checked,
-                                        )
-                                    }
-                                />
-                                <span
-                                    className="text-sm leading-6"
-                                    style={{ color: "var(--ink-soft)" }}
+                                <div className="grid gap-8 sm:grid-cols-2">
+                                    <Field label="Your name" error={errors.name}>
+                                        <input
+                                            value={data.name}
+                                            onChange={(e) =>
+                                                setData("name", e.target.value)
+                                            }
+                                            type="text"
+                                            placeholder="Jane Doe"
+                                            className="field-input"
+                                        />
+                                    </Field>
+
+                                    <Field label="Email" error={errors.email}>
+                                        <input
+                                            value={data.email}
+                                            onChange={(e) =>
+                                                setData("email", e.target.value)
+                                            }
+                                            type="email"
+                                            placeholder="you@example.com"
+                                            className="field-input"
+                                        />
+                                    </Field>
+                                </div>
+
+                                <div className="mt-8">
+                                    <Field label="Story title" error={errors.title}>
+                                        <input
+                                            value={data.title}
+                                            onChange={(e) =>
+                                                setData("title", e.target.value)
+                                            }
+                                            type="text"
+                                            placeholder="Give your story a title"
+                                            className="field-input"
+                                        />
+                                    </Field>
+                                </div>
+
+                                <div className="mt-10">
+                                    <div className="flex items-baseline justify-between">
+                                        <label className="field-label">
+                                            Your story
+                                        </label>
+                                        <span
+                                            className="text-xs"
+                                            style={{
+                                                color: meetsMinimum
+                                                    ? "var(--blue)"
+                                                    : "#A6ADB4",
+                                            }}
+                                        >
+                                            {storyLength}/50 characters minimum
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-3">
+                                        <textarea
+                                            value={data.story}
+                                            onChange={(e) =>
+                                                setData("story", e.target.value)
+                                            }
+                                            placeholder="Once upon a time…"
+                                            className="manuscript-textarea"
+                                        />
+                                    </div>
+
+                                    {errors.story && (
+                                        <p
+                                            className="mt-2 text-sm"
+                                            style={{ color: "var(--blue)" }}
+                                        >
+                                            {errors.story}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div
+                                    className="mt-10 space-y-4 border-t pt-8"
+                                    style={{ borderColor: "#E1E5EA" }}
                                 >
-                                    You may contact me about my submission.
-                                </span>
-                            </label>
+                                    <label className="checkbox-row flex cursor-pointer gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.allow_publication}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "allow_publication",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <span
+                                            className="text-sm leading-6"
+                                            style={{ color: "var(--ink-soft)" }}
+                                        >
+                                            I agree that my story may be
+                                            published after review.
+                                        </span>
+                                    </label>
+
+                                    <label className="checkbox-row flex cursor-pointer gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.allow_contact}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "allow_contact",
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        <span
+                                            className="text-sm leading-6"
+                                            style={{ color: "var(--ink-soft)" }}
+                                        >
+                                            You may contact me about my
+                                            submission.
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="submit-btn mt-10 w-full rounded-full px-6 py-4 text-sm font-semibold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-10"
+                                >
+                                    {processing ? "Sending…" : "Submit my story"}
+                                </button>
+                            </form>
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="submit-btn mt-10 w-full rounded-full px-6 py-4 text-sm font-semibold tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-10"
-                        >
-                            {processing ? "Sending…" : "Submit my story"}
-                        </button>
-                    </form>
+                    </div>
                 </section>
             </div>
         </PublicLayout>

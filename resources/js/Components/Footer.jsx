@@ -89,8 +89,8 @@ export default function Footer() {
                         </h3>
 
                         <div className="mt-5 flex flex-col gap-3 text-sm">
-                            <Link href="/youtube" className="text-gray-400 transition hover:text-[#5BA3DB]">
-                                YouTube
+                            <Link href="/stories" className="text-gray-400 transition hover:text-[#5BA3DB]">
+                                Stories
                             </Link>
                             <Link href="/entertainment" className="text-gray-400 transition hover:text-[#5BA3DB]">
                                 Entertainment
