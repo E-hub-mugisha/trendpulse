@@ -16,6 +16,7 @@ use App\Http\Controllers\UserPage\PeopleController;
 use App\Http\Controllers\UserPage\StorySubmissionController;
 use App\Http\Controllers\UserPage\YoutubeController;
 use App\Http\Controllers\ContactController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -124,4 +125,13 @@ Route::get('/test-email', function () {
     }
 });
 
+// storage link
+Route::get('/storage-link', function () {
+    try {
+        Artisan::call('storage:link');
+        return 'Storage link created successfully!';
+    } catch (\Exception $e) {
+        return 'Failed to create storage link: ' . $e->getMessage();
+    }
+});
 require __DIR__ . '/auth.php';
