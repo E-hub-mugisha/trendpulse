@@ -230,9 +230,7 @@ export default function Index({ videos, categories, filters, stats }) {
                                             <div className="flex items-center justify-end gap-1">
 
                                                 <a
-                                                    href={`/entertainment/videos/${video.slug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    href={`/admin/youtube/${video.slug}`}
                                                     className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-black"
                                                     title="View"
                                                 >

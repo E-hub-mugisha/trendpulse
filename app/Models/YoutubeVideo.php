@@ -24,6 +24,9 @@ class YoutubeVideo extends Model
         'is_featured' => 'boolean',
         'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'views' => 'integer',
     ];
 
     public function category(): BelongsTo

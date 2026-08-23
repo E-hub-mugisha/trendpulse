@@ -56,10 +56,10 @@ export default function Hero({ slides = HERO_SLIDES }) {
 
     return (
         <section className="bg-white">
-            <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-20 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:py-28 lg:px-8">
+            <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-20 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:py-5 lg:px-8">
 
-                {/* LEFT — content, keyed to the active slide */}
-                <div className="order-2 lg:order-1">
+                {/* LEFT — content, keyed to the active slide. 5/12 cols on desktop */}
+                <div className="order-2 lg:order-1 lg:col-span-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0A599E]">
                         {current.eyebrow}
                     </p>
@@ -108,9 +108,9 @@ export default function Hero({ slides = HERO_SLIDES }) {
                     </div>
                 </div>
 
-                {/* RIGHT — image, crossfades with the active slide */}
-                <div className="order-1 lg:order-2">
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[4/5] lg:aspect-[3/4]">
+                {/* RIGHT — image, crossfades with the active slide. 7/12 cols on desktop */}
+                <div className="order-1 lg:order-2 lg:col-span-7">
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[4/5] lg:aspect-[16/11]">
                         {slides.map((s, i) => (
                             <img
                                 key={s.image}

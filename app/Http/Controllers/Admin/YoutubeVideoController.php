@@ -35,7 +35,7 @@ class YoutubeVideoController extends Controller
             ->latest()
             ->paginate(12)
             ->withQueryString()
-            ->through(fn ($video) => [
+            ->through(fn($video) => [
                 'id' => $video->id,
                 'slug' => $video->slug,
                 'title' => $video->title,
@@ -91,6 +91,52 @@ class YoutubeVideoController extends Controller
             ->with('success', 'Video added successfully.');
     }
 
+    public function show(YoutubeVideo $video): Response
+    {
+        $video->load('category:id,name');
+
+        $related = YoutubeVideo::query()
+            ->where('category_id', $video->category_id)
+            ->where('id', '!=', $video->id)
+            ->latest('published_at')
+            ->limit(4)
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'thumbnail',
+                'youtube_id',
+                'is_published',
+            ]);
+
+        return Inertia::render('Admin/Youtube/Show', [
+            'video' => [
+                'id' => $video->id,
+                'title' => $video->title,
+                'slug' => $video->slug,
+                'youtube_id' => $video->youtube_id,
+                'thumbnail' => $video->thumbnail,
+                'thumbnail_url' => $video->thumbnail_url,
+                'description' => $video->description,
+                'category' => $video->category?->name,
+                'views' => (int) ($video->views ?? 0),
+                'is_featured' => (bool) $video->is_featured,
+                'is_published' => (bool) $video->is_published,
+                'published_at' => $video->published_at?->format('M j, Y'),
+                'created_at' => $video->created_at?->format('M j, Y') ?? '—',
+                'updated_at' => $video->updated_at?->diffForHumans() ?? '—',
+            ],
+
+            'relatedVideos' => $related->map(fn(YoutubeVideo $v) => [
+                'id' => $v->id,
+                'title' => $v->title,
+                'slug' => $v->slug,
+                'thumbnail_url' => $v->thumbnail_url,
+                'is_published' => $v->is_published,
+            ])->values(),
+        ]);
+    }
+
     public function edit(YoutubeVideo $video): Response
     {
         return Inertia::render('Admin/Youtube/Edit', [
@@ -141,8 +187,8 @@ class YoutubeVideoController extends Controller
 
         while (
             YoutubeVideo::where('slug', $slug)
-                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-                ->exists()
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->exists()
         ) {
             $slug = "{$base}-{$i}";
             $i++;
