@@ -38,12 +38,6 @@ export default function Dashboard({ stats, recentActivity, topPeopleStories, top
             icon: MessagesSquare,
         },
         {
-            title: 'Pending Stories',
-            value: stats.pendingStories,
-            icon: PenSquare,
-            highlight: stats.pendingStories > 0,
-        },
-        {
             title: 'YouTube Videos',
             value: stats.youtubeVideos,
             icon: PlayCircle,
@@ -62,7 +56,6 @@ export default function Dashboard({ stats, recentActivity, topPeopleStories, top
 
     const activityIcons = {
         community_post: MessageCircle,
-        story_submission: FileText,
         user_joined: UserPlus,
     };
 
@@ -170,21 +163,6 @@ export default function Dashboard({ stats, recentActivity, topPeopleStories, top
                             >
                                 <Plus className="h-4 w-4" strokeWidth={2.5} />
                                 Add People Story
-                            </Link>
-
-                            <Link
-                                href="/admin/story-submissions"
-                                className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 p-4 text-sm font-bold transition hover:bg-gray-50"
-                            >
-                                <span className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
-                                    Review Stories
-                                </span>
-                                {stats.pendingStories > 0 && (
-                                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600">
-                                        {stats.pendingStories}
-                                    </span>
-                                )}
                             </Link>
 
                         </div>

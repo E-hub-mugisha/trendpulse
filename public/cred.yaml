@@ -1,0 +1,12 @@
+db: db_acd7cc_trendpulse
+name: acd7cc_trendpulse
+ps: Hirwa@123
+
+Driver={MySQL ODBC 8.0 UNICODE Driver};Server=mysql6008.site4now.net;Database=db_acd7cc_trendpulse;Uid=acd7cc_trendpulse;Password=YOUR_DB_PASSWORD
+
+DB_CONNECTION=mysql
+DB_HOST=MYSQL6008.site4now.net
+DB_PORT=3306
+DB_DATABASE=db_acd7cc_trendpulse
+DB_USERNAME=acd7cc_trendpulse
+DB_PASSWORD="Hirwa@123"

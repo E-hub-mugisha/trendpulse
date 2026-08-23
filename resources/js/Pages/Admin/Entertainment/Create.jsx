@@ -1,9 +1,35 @@
 // resources/js/Pages/Admin/Entertainment/Create.jsx
+//
+// Rich text editor: Tiptap (headless, works cleanly with Tailwind — no extra
+// CSS framework required). Install before using this file:
+//
+//   npm install @tiptap/react @tiptap/pm @tiptap/starter-kit @tiptap/extension-link @tiptap/extension-placeholder
+//
+// `data.content` is kept as an HTML string, same as a textarea would produce,
+// so nothing on the Laravel/controller side needs to change.
 
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { ArrowLeft, ImagePlus, Newspaper } from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link_ from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import {
+    Bold as BoldIcon,
+    Italic as ItalicIcon,
+    Strikethrough,
+    Heading2,
+    Heading3,
+    List,
+    ListOrdered,
+    Quote,
+    Link2,
+    Link2Off,
+    Undo2,
+    Redo2,
+} from 'lucide-react';
 
 export default function Create({ categories, authors }) {
     const fileInputRef = useRef(null);
@@ -116,11 +142,9 @@ export default function Create({ categories, authors }) {
                         <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
                             Content
                         </label>
-                        <textarea
+                        <RichTextEditor
                             value={data.content}
-                            onChange={(e) => setData('content', e.target.value)}
-                            rows={12}
-                            className="mt-2 block w-full resize-y rounded-xl border-0 bg-gray-100 px-4 py-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-black"
+                            onChange={(html) => setData('content', html)}
                         />
                         {errors.content && <p className="mt-1 text-xs text-red-500">{errors.content}</p>}
                     </div>
@@ -229,5 +253,206 @@ export default function Create({ categories, authors }) {
             </div>
 
         </AdminLayout>
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Rich text editor (Tiptap)                                                  */
+/* -------------------------------------------------------------------------- */
+
+function RichTextEditor({ value, onChange }) {
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({
+                heading: { levels: [2, 3] },
+            }),
+            Link_.configure({
+                openOnClick: false,
+                autolink: true,
+                HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
+            }),
+            Placeholder.configure({
+                placeholder: 'Write the article…',
+            }),
+        ],
+        content: value,
+        editorProps: {
+            attributes: {
+                class: 'rte-content min-h-[280px] px-4 py-3 text-sm leading-6 focus:outline-none',
+            },
+        },
+        onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    });
+
+    const setLink = useCallback(() => {
+        if (!editor) return;
+        const previousUrl = editor.getAttributes('link').href;
+        const url = window.prompt('URL', previousUrl ?? 'https://');
+        if (url === null) return;
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            return;
+        }
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }, [editor]);
+
+    if (!editor) return null;
+
+    return (
+        <div className="mt-2 overflow-hidden rounded-xl border border-transparent bg-gray-100 focus-within:ring-2 focus-within:ring-black">
+            <RteToolbar editor={editor} onSetLink={setLink} />
+            <div className="border-t border-gray-200 bg-white">
+                <EditorContent editor={editor} />
+            </div>
+            <RteStyles />
+        </div>
+    );
+}
+
+function RteToolbar({ editor, onSetLink }) {
+    const buttons = [
+        {
+            icon: BoldIcon,
+            label: 'Bold',
+            active: editor.isActive('bold'),
+            onClick: () => editor.chain().focus().toggleBold().run(),
+        },
+        {
+            icon: ItalicIcon,
+            label: 'Italic',
+            active: editor.isActive('italic'),
+            onClick: () => editor.chain().focus().toggleItalic().run(),
+        },
+        {
+            icon: Strikethrough,
+            label: 'Strikethrough',
+            active: editor.isActive('strike'),
+            onClick: () => editor.chain().focus().toggleStrike().run(),
+        },
+        { divider: true },
+        {
+            icon: Heading2,
+            label: 'Heading',
+            active: editor.isActive('heading', { level: 2 }),
+            onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        },
+        {
+            icon: Heading3,
+            label: 'Subheading',
+            active: editor.isActive('heading', { level: 3 }),
+            onClick: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+        },
+        { divider: true },
+        {
+            icon: List,
+            label: 'Bullet list',
+            active: editor.isActive('bulletList'),
+            onClick: () => editor.chain().focus().toggleBulletList().run(),
+        },
+        {
+            icon: ListOrdered,
+            label: 'Numbered list',
+            active: editor.isActive('orderedList'),
+            onClick: () => editor.chain().focus().toggleOrderedList().run(),
+        },
+        {
+            icon: Quote,
+            label: 'Quote',
+            active: editor.isActive('blockquote'),
+            onClick: () => editor.chain().focus().toggleBlockquote().run(),
+        },
+        { divider: true },
+        {
+            icon: Link2,
+            label: 'Add link',
+            active: editor.isActive('link'),
+            onClick: onSetLink,
+        },
+        {
+            icon: Link2Off,
+            label: 'Remove link',
+            active: false,
+            disabled: !editor.isActive('link'),
+            onClick: () => editor.chain().focus().unsetLink().run(),
+        },
+        { divider: true },
+        {
+            icon: Undo2,
+            label: 'Undo',
+            active: false,
+            disabled: !editor.can().undo(),
+            onClick: () => editor.chain().focus().undo().run(),
+        },
+        {
+            icon: Redo2,
+            label: 'Redo',
+            active: false,
+            disabled: !editor.can().redo(),
+            onClick: () => editor.chain().focus().redo().run(),
+        },
+    ];
+
+    return (
+        <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5">
+            {buttons.map((btn, i) =>
+                btn.divider ? (
+                    <span key={i} className="mx-1 h-5 w-px bg-gray-300" />
+                ) : (
+                    <button
+                        key={btn.label}
+                        type="button"
+                        title={btn.label}
+                        disabled={btn.disabled}
+                        onClick={btn.onClick}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                            btn.active
+                                ? 'bg-black text-white'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-black'
+                        } disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent`}
+                    >
+                        <btn.icon className="h-4 w-4" strokeWidth={2.25} />
+                    </button>
+                )
+            )}
+        </div>
+    );
+}
+
+function RteStyles() {
+    return (
+        <style>{`
+            .rte-content { outline: none; }
+            .rte-content p { margin: 0 0 0.75em; }
+            .rte-content p:last-child { margin-bottom: 0; }
+            .rte-content h2 { font-size: 1.25rem; font-weight: 800; margin: 1.2em 0 0.5em; letter-spacing: -0.01em; }
+            .rte-content h3 { font-size: 1.05rem; font-weight: 700; margin: 1em 0 0.4em; }
+            .rte-content h2:first-child, .rte-content h3:first-child { margin-top: 0; }
+            .rte-content ul, .rte-content ol { margin: 0 0 0.75em; padding-left: 1.4em; }
+            .rte-content ul { list-style: disc; }
+            .rte-content ol { list-style: decimal; }
+            .rte-content li { margin: 0.2em 0; }
+            .rte-content blockquote {
+                margin: 0.75em 0;
+                padding: 0.25em 0 0.25em 1em;
+                border-left: 3px solid #111827;
+                color: #4b5563;
+                font-style: italic;
+            }
+            .rte-content a { color: #111827; text-decoration: underline; text-underline-offset: 2px; }
+            .rte-content strong { font-weight: 800; }
+            .rte-content code {
+                background: #f3f4f6;
+                border-radius: 4px;
+                padding: 0.1em 0.35em;
+                font-size: 0.85em;
+            }
+            .rte-content p.is-editor-empty:first-child::before {
+                content: attr(data-placeholder);
+                float: left;
+                color: #9ca3af;
+                pointer-events: none;
+                height: 0;
+            }
+        `}</style>
     );
 }

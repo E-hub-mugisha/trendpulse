@@ -24,7 +24,6 @@ class DashboardController extends Controller
             'communityPosts' => CommunityPost::count(),
             'communityPostsThisWeek' => CommunityPost::where('created_at', '>=', now()->subDays(7))->count(),
             'comments' => Comment::count(),
-            'pendingStories' => StorySubmission::where('status', 'pending')->count(),
             'youtubeVideos' => YoutubeVideo::count(),
             'entertainmentPosts' => EntertainmentPost::count(),
             'peopleStories' => PeopleStory::count(),
@@ -42,18 +41,6 @@ class DashboardController extends Controller
                         'detail' => \Illuminate\Support\Str::limit($post->content, 60),
                         'user' => $post->user?->name,
                         'created_at' => $post->created_at,
-                    ])
-            )
-            ->concat(
-                StorySubmission::latest()
-                    ->take(5)
-                    ->get()
-                    ->map(fn ($submission) => [
-                        'type' => 'story_submission',
-                        'label' => 'Story submitted',
-                        'detail' => $submission->title ?? 'Untitled submission',
-                        'user' => $submission->name ?? null,
-                        'created_at' => $submission->created_at,
                     ])
             )
             ->concat(

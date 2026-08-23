@@ -22,6 +22,7 @@ import {
 
 const MENU = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid, exact: true },
+    { label: 'Categories', href: '/admin/categories', icon: Newspaper },
     { label: 'YouTube', href: '/admin/youtube', icon: PlayCircle },
     { label: 'Entertainment', href: '/admin/entertainment', icon: Newspaper },
     { label: 'People', href: '/admin/people', icon: Users },

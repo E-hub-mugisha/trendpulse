@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\EntertainmentPostController;
 use App\Http\Controllers\Admin\PeopleStoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\YoutubeVideoController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
@@ -83,6 +84,8 @@ Route::middleware(['auth', 'admin'])
             DashboardController::class,
             'index'
         ])->name('dashboard');
+
+        Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
 
         Route::resource('youtube', YoutubeVideoController::class)
             ->parameters(['youtube' => 'video'])

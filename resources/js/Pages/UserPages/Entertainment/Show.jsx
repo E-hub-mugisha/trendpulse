@@ -43,6 +43,69 @@ function SidebarSection({ title, children }) {
     );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Post content — renders Tiptap-produced HTML instead of raw text/markup     */
+/* -------------------------------------------------------------------------- */
+
+function PostContent({ html }) {
+    if (!html) return null;
+
+    // Posts saved before the rich text editor was added may still be plain
+    // text with no tags — fall back to the old whitespace-preserving render
+    // for that case instead of dumping an unstyled wall of text.
+    const looksLikeHtml = /<[a-z][\s\S]*>/i.test(html);
+
+    if (!looksLikeHtml) {
+        return (
+            <div className="whitespace-pre-line text-base leading-8 text-gray-700">
+                {html}
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div
+                className="post-content text-base leading-8 text-gray-700"
+                dangerouslySetInnerHTML={{ __html: html }}
+            />
+            <PostContentStyles />
+        </>
+    );
+}
+
+function PostContentStyles() {
+    return (
+        <style>{`
+            .post-content p { margin: 0 0 1.25em; }
+            .post-content p:last-child { margin-bottom: 0; }
+            .post-content h2 { font-size: 1.6rem; font-weight: 800; color: #000; margin: 1.4em 0 0.5em; letter-spacing: -0.01em; }
+            .post-content h3 { font-size: 1.25rem; font-weight: 700; color: #000; margin: 1.2em 0 0.4em; }
+            .post-content h2:first-child, .post-content h3:first-child { margin-top: 0; }
+            .post-content ul, .post-content ol { margin: 0 0 1.25em; padding-left: 1.5em; }
+            .post-content ul { list-style: disc; }
+            .post-content ol { list-style: decimal; }
+            .post-content li { margin: 0.35em 0; }
+            .post-content blockquote {
+                margin: 1.25em 0;
+                padding: 0.25em 0 0.25em 1.25em;
+                border-left: 2px solid #0A599E;
+                color: #4b5563;
+                font-style: italic;
+            }
+            .post-content a { color: #0A599E; text-decoration: underline; text-underline-offset: 2px; }
+            .post-content a:hover { color: #073F70; }
+            .post-content strong { font-weight: 800; color: #000; }
+            .post-content code {
+                background: #f3f4f6;
+                border-radius: 4px;
+                padding: 0.1em 0.4em;
+                font-size: 0.85em;
+            }
+        `}</style>
+    );
+}
+
 export default function Show({ post, relatedPosts, recentPosts, trendingPosts }) {
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -139,9 +202,7 @@ export default function Show({ post, relatedPosts, recentPosts, trendingPosts })
 
                             <div className="mt-10 border-t border-gray-100 pt-10">
 
-                                <div className="whitespace-pre-line text-base leading-8 text-gray-700">
-                                    {post.content}
-                                </div>
+                                <PostContent html={post.content} />
 
                             </div>
 

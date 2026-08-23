@@ -33,8 +33,4 @@ class Category extends Model
         return $this->hasMany(PeopleStory::class);
     }
 
-    public function storySubmissions(): HasMany
-    {
-        return $this->hasMany(StorySubmission::class);
-    }
 }
