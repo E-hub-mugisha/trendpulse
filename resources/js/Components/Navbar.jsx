@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Link, usePage, router} from "@inertiajs/react";
+import { useEffect, useRef, useState } from "react";
 import {
     Search,
     X,
@@ -8,7 +8,11 @@ import {
     Newspaper,
     Users,
     Grid3x3,
-} from 'lucide-react';
+    User,
+    Bell,
+    LogOut,
+    ChevronDown,
+} from "lucide-react";
 
 function useDebouncedValue(value, delay) {
     const [debounced, setDebounced] = useState(value);
@@ -21,6 +25,17 @@ function useDebouncedValue(value, delay) {
     return debounced;
 }
 
+function useClickOutside(ref, handler) {
+    useEffect(() => {
+        function listener(e) {
+            if (!ref.current || ref.current.contains(e.target)) return;
+            handler();
+        }
+        document.addEventListener("mousedown", listener);
+        return () => document.removeEventListener("mousedown", listener);
+    }, [ref, handler]);
+}
+
 const SECTION_ICONS = {
     stories: PlayCircle,
     entertainment: Newspaper,
@@ -28,7 +43,7 @@ const SECTION_ICONS = {
 };
 
 function SearchOverlay({ open, onClose, categories }) {
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState("");
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
     const inputRef = useRef(null);
@@ -38,7 +53,7 @@ function SearchOverlay({ open, onClose, categories }) {
         if (open) {
             setTimeout(() => inputRef.current?.focus(), 50);
         } else {
-            setQuery('');
+            setQuery("");
             setResults(null);
         }
     }, [open]);
@@ -59,41 +74,54 @@ function SearchOverlay({ open, onClose, categories }) {
 
     useEffect(() => {
         const handleKey = (e) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === "Escape") onClose();
         };
-        document.addEventListener('keydown', handleKey);
-        return () => document.removeEventListener('keydown', handleKey);
+        document.addEventListener("keydown", handleKey);
+        return () => document.removeEventListener("keydown", handleKey);
     }, [onClose]);
 
     if (!open) return null;
 
     const isSearching = query.trim().length >= 2;
 
-    const hasResults = results && (
-        results.people.length > 0 ||
-        results.entertainment.length > 0 ||
-        results.stories.length > 0
-    );
+    const hasResults =
+        results &&
+        (results.people.length > 0 ||
+            results.entertainment.length > 0 ||
+            results.stories.length > 0);
 
     const resultGroups = [
-        { key: 'people', label: 'People Stories', items: results?.people || [] },
-        { key: 'entertainment', label: 'Entertainment', items: results?.entertainment || [] },
-        { key: 'stories', label: 'Stories', items: results?.stories || [] },
+        {
+            key: "people",
+            label: "People Stories",
+            items: results?.people || [],
+        },
+        {
+            key: "entertainment",
+            label: "Entertainment",
+            items: results?.entertainment || [],
+        },
+        { key: "stories", label: "Stories", items: results?.stories || [] },
     ];
 
     const categorySections = [
-        { key: 'stories', label: 'Stories', base: '/stories' },
-        { key: 'entertainment', label: 'Entertainment', base: '/entertainment' },
-        { key: 'people', label: 'People', base: '/people' },
+        { key: "stories", label: "Stories", base: "/stories" },
+        {
+            key: "entertainment",
+            label: "Entertainment",
+            base: "/entertainment",
+        },
+        { key: "people", label: "People", base: "/people" },
     ];
 
     return (
         <div className="fixed inset-0 z-[60] overflow-y-auto bg-white">
-
             <div className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 backdrop-blur-xl">
                 <div className="mx-auto flex h-[76px] max-w-4xl items-center gap-4 px-5 sm:px-6">
-
-                    <Search className="h-5 w-5 shrink-0 text-[#0A599E]" strokeWidth={2} />
+                    <Search
+                        className="h-5 w-5 shrink-0 text-[#0A599E]"
+                        strokeWidth={2}
+                    />
 
                     <input
                         ref={inputRef}
@@ -111,16 +139,13 @@ function SearchOverlay({ open, onClose, categories }) {
                     >
                         <X className="h-5 w-5" strokeWidth={2} />
                     </button>
-
                 </div>
             </div>
 
             <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6">
-
                 {/* Search results (only while actively searching) */}
                 {isSearching && (
                     <div className="mb-10">
-
                         {loading && (
                             <p className="text-sm text-gray-400">Searching…</p>
                         )}
@@ -133,57 +158,66 @@ function SearchOverlay({ open, onClose, categories }) {
 
                         {!loading && hasResults && (
                             <div className="space-y-8">
-                                {resultGroups.map((group) => (
-                                    group.items.length > 0 && (
-                                        <div key={group.key}>
-                                            <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-[#0A599E]" />
-                                                {group.label}
-                                            </h3>
-                                            <div className="grid gap-3 sm:grid-cols-2">
-                                                {group.items.map((item) => (
-                                                    <Link
-                                                        key={item.id}
-                                                        href={item.url}
-                                                        onClick={onClose}
-                                                        className="group flex items-center gap-3 rounded-xl p-2 hover:bg-[#0A599E]/5"
-                                                    >
-                                                        <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                                                            {item.image ? (
-                                                                <img
-                                                                    src={item.image}
-                                                                    alt={item.title}
-                                                                    className="h-full w-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="h-full w-full bg-gray-100" />
-                                                            )}
-                                                        </div>
-                                                        <span className="line-clamp-2 text-sm font-bold text-gray-800 group-hover:text-[#0A599E]">
-                                                            {item.title}
-                                                        </span>
-                                                    </Link>
-                                                ))}
+                                {resultGroups.map(
+                                    (group) =>
+                                        group.items.length > 0 && (
+                                            <div key={group.key}>
+                                                <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-[#0A599E]" />
+                                                    {group.label}
+                                                </h3>
+                                                <div className="grid gap-3 sm:grid-cols-2">
+                                                    {group.items.map((item) => (
+                                                        <Link
+                                                            key={item.id}
+                                                            href={item.url}
+                                                            onClick={onClose}
+                                                            className="group flex items-center gap-3 rounded-xl p-2 hover:bg-[#0A599E]/5"
+                                                        >
+                                                            <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                                                                {item.image ? (
+                                                                    <img
+                                                                        src={
+                                                                            item.image
+                                                                        }
+                                                                        alt={
+                                                                            item.title
+                                                                        }
+                                                                        className="h-full w-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="h-full w-full bg-gray-100" />
+                                                                )}
+                                                            </div>
+                                                            <span className="line-clamp-2 text-sm font-bold text-gray-800 group-hover:text-[#0A599E]">
+                                                                {item.title}
+                                                            </span>
+                                                        </Link>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )
-                                ))}
+                                        ),
+                                )}
                             </div>
                         )}
-
                     </div>
                 )}
 
                 {/* Browse by category (always visible, secondary once searching) */}
-                <div className={isSearching ? 'border-t border-gray-100 pt-8' : ''}>
-
+                <div
+                    className={
+                        isSearching ? "border-t border-gray-100 pt-8" : ""
+                    }
+                >
                     <h3 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                        <Grid3x3 className="h-3.5 w-3.5 text-[#0A599E]" strokeWidth={2} />
+                        <Grid3x3
+                            className="h-3.5 w-3.5 text-[#0A599E]"
+                            strokeWidth={2}
+                        />
                         Browse by Category
                     </h3>
 
                     <div className="grid gap-8 sm:grid-cols-3">
-
                         {categorySections.map((section) => {
                             const Icon = SECTION_ICONS[section.key];
 
@@ -194,22 +228,27 @@ function SearchOverlay({ open, onClose, categories }) {
                                         onClick={onClose}
                                         className="mb-3 flex items-center gap-2 text-sm font-bold text-gray-800 transition hover:text-[#0A599E]"
                                     >
-                                        <Icon className="h-4 w-4" strokeWidth={2} />
+                                        <Icon
+                                            className="h-4 w-4"
+                                            strokeWidth={2}
+                                        />
                                         {section.label}
                                     </Link>
 
                                     <div className="flex flex-col gap-1">
                                         {categories.length > 0 ? (
-                                            categories.slice(0, 6).map((cat) => (
-                                                <Link
-                                                    key={cat.id}
-                                                    href={`${section.base}?category=${cat.slug}`}
-                                                    onClick={onClose}
-                                                    className="rounded-lg px-2 py-1.5 text-sm text-gray-500 transition hover:bg-[#0A599E]/5 hover:text-[#0A599E]"
-                                                >
-                                                    {cat.name}
-                                                </Link>
-                                            ))
+                                            categories
+                                                .slice(0, 6)
+                                                .map((cat) => (
+                                                    <Link
+                                                        key={cat.id}
+                                                        href={`${section.base}?category=${cat.slug}`}
+                                                        onClick={onClose}
+                                                        className="rounded-lg px-2 py-1.5 text-sm text-gray-500 transition hover:bg-[#0A599E]/5 hover:text-[#0A599E]"
+                                                    >
+                                                        {cat.name}
+                                                    </Link>
+                                                ))
                                         ) : (
                                             <p className="px-2 py-1.5 text-sm text-gray-300">
                                                 No categories yet
@@ -219,33 +258,107 @@ function SearchOverlay({ open, onClose, categories }) {
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
+function AccountMenu({ user }) {
+    const [open, setOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    useClickOutside(menuRef, () => setOpen(false));
+
+    const initial = user?.name?.charAt(0)?.toUpperCase();
+
+    const logout = (e) => {
+        e.preventDefault();
+        router.post("/logout");
+    };
+
+    return (
+        <div className="relative" ref={menuRef}>
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-full border border-gray-200 py-1.5 pl-1.5 pr-3 transition hover:border-[#0A599E]"
+            >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0A599E] text-xs font-bold text-white">
+                    {initial}
+                </div>
+                <span className="max-w-[100px] truncate text-sm font-semibold text-gray-700">
+                    {user?.name}
+                </span>
+                <ChevronDown
+                    className={`h-4 w-4 text-gray-400 transition ${open ? "rotate-180" : ""}`}
+                    strokeWidth={2}
+                />
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-[calc(100%+8px)] w-56 overflow-hidden rounded-2xl border border-gray-100 bg-white py-2 shadow-lg">
+                    <div className="border-b border-gray-100 px-4 py-3">
+                        <p className="truncate text-sm font-bold text-black">
+                            {user?.name}
+                        </p>
+                        <p className="truncate text-xs text-gray-400">
+                            {user?.email}
+                        </p>
                     </div>
 
+                    <Link
+                        href="/profile"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-[#0A599E]/5 hover:text-[#0A599E]"
+                    >
+                        <User className="h-4 w-4" strokeWidth={2} />
+                        Profile
+                    </Link>
+
+                    <Link
+                        href="/notifications"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-[#0A599E]/5 hover:text-[#0A599E]"
+                    >
+                        <Bell className="h-4 w-4" strokeWidth={2} />
+                        Notifications
+                    </Link>
+
+                    <div className="my-1 border-t border-gray-100" />
+
+                    <button
+                        type="button"
+                        onClick={logout}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-red-500 transition hover:bg-red-50"
+                    >
+                        <LogOut className="h-4 w-4" strokeWidth={2} />
+                        Log out
+                    </button>
                 </div>
-
-            </div>
-
+            )}
         </div>
     );
 }
 
 export default function Navbar() {
     const { url, props } = usePage();
+    const { auth, unreadNotificationsCount } = props;
     const categories = props.categories || [];
     const [mobileOpen, setMobileOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
 
     const navigation = [
-        { name: 'Stories', href: '/stories' },
-        { name: 'Entertainment', href: '/entertainment' },
-        { name: 'People', href: '/people' },
-        { name: 'Community', href: '/community' },
+        { name: "Stories", href: "/stories" },
+        { name: "Entertainment", href: "/entertainment" },
+        { name: "People", href: "/people" },
+        { name: "Community", href: "/community" },
     ];
 
     const isActive = (href) => {
-        if (href === '/') {
-            return url === '/';
+        if (href === "/") {
+            return url === "/";
         }
         return url.startsWith(href);
     };
@@ -254,7 +367,6 @@ export default function Navbar() {
         <>
             <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-xl">
                 <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
-
                     <Link href="/" className="flex items-center gap-2">
                         {/* <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0A599E] text-sm font-black text-white">
                             T
@@ -277,8 +389,8 @@ export default function Navbar() {
                                 href={item.href}
                                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                                     isActive(item.href)
-                                        ? 'bg-[#0A599E]/10 text-[#0A599E]'
-                                        : 'text-gray-500 hover:bg-gray-50 hover:text-black'
+                                        ? "bg-[#0A599E]/10 text-[#0A599E]"
+                                        : "text-gray-500 hover:bg-gray-50 hover:text-black"
                                 }`}
                             >
                                 {item.name}
@@ -288,7 +400,6 @@ export default function Navbar() {
 
                     {/* Desktop right side */}
                     <div className="hidden items-center gap-2 lg:flex">
-
                         <button
                             type="button"
                             onClick={() => setSearchOpen(true)}
@@ -304,11 +415,20 @@ export default function Navbar() {
                             Share Your Story
                         </Link>
 
+                        {auth?.user ? (
+                            <AccountMenu user={auth.user} />
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="rounded-full border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-[#0A599E] hover:text-[#0A599E]"
+                            >
+                                Sign in
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile: search + menu buttons */}
                     <div className="flex items-center gap-2 lg:hidden">
-
                         <button
                             type="button"
                             onClick={() => setSearchOpen(true)}
@@ -328,16 +448,13 @@ export default function Navbar() {
                                 <Menu className="h-5 w-5" strokeWidth={2} />
                             )}
                         </button>
-
                     </div>
-
                 </div>
 
                 {/* Mobile navigation */}
                 {mobileOpen && (
                     <div className="border-t border-gray-100 bg-white px-5 py-5 lg:hidden">
                         <nav className="flex flex-col gap-2">
-
                             {navigation.map((item) => (
                                 <Link
                                     key={item.name}
@@ -345,8 +462,8 @@ export default function Navbar() {
                                     onClick={() => setMobileOpen(false)}
                                     className={`rounded-xl px-4 py-3 text-sm font-semibold ${
                                         isActive(item.href)
-                                            ? 'bg-[#0A599E]/10 text-[#0A599E]'
-                                            : 'text-gray-600'
+                                            ? "bg-[#0A599E]/10 text-[#0A599E]"
+                                            : "text-gray-600"
                                     }`}
                                 >
                                     {item.name}
@@ -361,6 +478,79 @@ export default function Navbar() {
                                 Share Your Story
                             </Link>
 
+                            {auth?.user ? (
+                                <>
+                                    <div className="mt-3 border-t border-gray-100 pt-3">
+                                        <div className="flex items-center gap-3 px-4 py-2">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0A599E] text-xs font-bold text-white">
+                                                {auth.user.name
+                                                    ?.charAt(0)
+                                                    ?.toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-bold text-black">
+                                                    {auth.user.name}
+                                                </p>
+                                                <p className="truncate text-xs text-gray-400">
+                                                    {auth.user.email}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <Link
+                                            href="/profile"
+                                            onClick={() => setMobileOpen(false)}
+                                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-600"
+                                        >
+                                            <User
+                                                className="h-4 w-4"
+                                                strokeWidth={2}
+                                            />
+                                            Profile
+                                        </Link>
+
+                                        <Link
+                                            href="/notifications"
+                                            onClick={() => setMobileOpen(false)}
+                                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-600"
+                                        >
+                                            <Bell
+                                                className="h-4 w-4"
+                                                strokeWidth={2}
+                                            />
+                                            Notifications
+                                            {unreadNotificationsCount > 0 && (
+                                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                                    {unreadNotificationsCount}
+                                                </span>
+                                            )}
+                                        </Link>
+
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                router.post("/logout");
+                                            }}
+                                            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-500"
+                                        >
+                                            <LogOut
+                                                className="h-4 w-4"
+                                                strokeWidth={2}
+                                            />
+                                            Log out
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="mt-2 rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-bold text-gray-700"
+                                >
+                                    Sign in
+                                </Link>
+                            )}
                         </nav>
                     </div>
                 )}

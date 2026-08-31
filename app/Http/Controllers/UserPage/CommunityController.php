@@ -91,12 +91,17 @@ class CommunityController extends Controller
 
     public function toggleLike(CommunityPost $post): RedirectResponse
     {
-        $like = $post->likes()->where('user_id', request()->user()->id)->first();
+        $userId = request()->user()->id;
+        $like = $post->likes()->where('user_id', $userId)->first();
 
         if ($like) {
             $like->delete();
         } else {
-            $post->likes()->create(['user_id' => request()->user()->id]);
+            $newLike = $post->likes()->create(['user_id' => $userId]);
+
+            if ($post->user_id !== $userId) {
+                $post->user->notify(new \App\Notifications\NewLikeNotification($newLike));
+            }
         }
 
         return back();
@@ -109,24 +114,42 @@ class CommunityController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
         ]);
 
-        $post->comments()->create([
+        $comment = $post->comments()->create([
             'user_id' => $request->user()->id,
             'content' => $validated['content'],
             'parent_id' => $validated['parent_id'] ?? null,
             'status' => 'approved',
         ]);
 
+        // Notify post owner about the comment, unless commenting on own post
+        if ($post->user_id !== $request->user()->id) {
+            $post->user->notify(new \App\Notifications\NewCommentNotification($comment));
+        }
+
+        // If this is a reply, also notify the parent comment's author
+        if ($validated['parent_id'] ?? null) {
+            $parentComment = Comment::find($validated['parent_id']);
+            if ($parentComment && $parentComment->user_id !== $request->user()->id) {
+                $parentComment->user->notify(new \App\Notifications\NewCommentNotification($comment));
+            }
+        }
+
         return back();
     }
 
     public function toggleCommentLike(Comment $comment): RedirectResponse
     {
-        $like = $comment->likes()->where('user_id', request()->user()->id)->first();
+        $userId = request()->user()->id;
+        $like = $comment->likes()->where('user_id', $userId)->first();
 
         if ($like) {
             $like->delete();
         } else {
-            $comment->likes()->create(['user_id' => request()->user()->id]);
+            $newLike = $comment->likes()->create(['user_id' => $userId]);
+
+            if ($comment->user_id !== $userId) {
+                $comment->user->notify(new \App\Notifications\NewLikeNotification($newLike));
+            }
         }
 
         return back();

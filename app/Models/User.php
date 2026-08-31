@@ -24,7 +24,23 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-    ];
+        'avatar',
+        'cover_photo',
+        'bio',
+        'location',
+    ]; // already imported
+
+    public function getAvatarUrlAttribute(): string
+    {
+        return $this->avatar
+            ? asset('storage/' . $this->avatar)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0A599E&color=fff';
+    }
+
+    public function getCoverPhotoUrlAttribute(): ?string
+    {
+        return $this->cover_photo ? asset('storage/' . $this->cover_photo) : null;
+    }
 
     /**
      * The attributes that should be hidden for serialization.
