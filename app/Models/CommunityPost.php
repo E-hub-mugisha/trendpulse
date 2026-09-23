@@ -15,18 +15,33 @@ class CommunityPost extends Model
         'status',
     ];
 
+    /**
+     * Post owner.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Post comments.
+     */
     public function comments(): MorphMany
     {
-        return $this->morphMany(Comment::class, 'commentable');
+        return $this->morphMany(
+            Comment::class,
+            'commentable'
+        );
     }
 
+    /**
+     * Post likes.
+     */
     public function likes(): MorphMany
     {
-        return $this->morphMany(Like::class, 'likeable');
+        return $this->morphMany(
+            Like::class,
+            'likeable'
+        );
     }
 }

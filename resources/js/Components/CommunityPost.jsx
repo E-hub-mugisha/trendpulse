@@ -1,477 +1,523 @@
-// resources/js/Components/CommunityPost.jsx
+import { router, useForm, usePage } from "@inertiajs/react";
+import { useState } from "react";
 
-import { router, useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+export default function CommunityPost({
+    post,
+    isAuthenticated = false,
+}) {
+    const { auth } = usePage().props;
 
-function ThumbsUpIcon({ filled }) {
-    return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-            <path d="M7 22V11M2 13v7a2 2 0 0 0 2 2h12.5a2 2 0 0 0 2-1.6l1.3-6.5a2 2 0 0 0-2-2.4H14l.7-4.2a1.8 1.8 0 0 0-3.2-1.4L7 11" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
+    const [showComments, setShowComments] = useState(false);
+    const [replyingTo, setReplyingTo] = useState(null);
 
-function ThumbsDownIcon() {
-    return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M17 2v11M22 11V4a2 2 0 0 0-2-2H7.5a2 2 0 0 0-2 1.6L4.2 10a2 2 0 0 0 2 2.4H10l-.7 4.2a1.8 1.8 0 0 0 3.2 1.4L17 13" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
+    const {
+        data,
+        setData,
+        post: submitComment,
+        processing,
+        errors,
+        reset,
+    } = useForm({
+        content: "",
+        parent_id: null,
+    });
 
-function CommentBubbleIcon() {
-    return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 12a8.5 8.5 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L3 21l1.4-4.2a8.5 8.5 0 1 1 16.6-4.8Z" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Submit comment
+    |--------------------------------------------------------------------------
+    */
 
-function ShareIcon() {
-    return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
+    const handleCommentSubmit = (e) => {
+        e.preventDefault();
 
-function DotsIcon() {
-    return (
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-            <circle cx="12" cy="5" r="1.8" />
-            <circle cx="12" cy="12" r="1.8" />
-            <circle cx="12" cy="19" r="1.8" />
-        </svg>
-    );
-}
+        if (!data.content.trim() || processing) {
+            return;
+        }
 
-function Avatar({ user, className = 'h-10 w-10' }) {
-    return (
-        <div className={`${className} shrink-0 overflow-hidden rounded-full bg-gray-200`}>
-            {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-            ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs font-bold text-gray-500">
-                    {user.name?.charAt(0) || '?'}
-                </div>
-            )}
-        </div>
-    );
-}
+        submitComment(
+            `/community/${post.id}/comments`,
+            {
+                preserveScroll: true,
 
-function PostMenu({ post, isAuthenticated }) {
-    const [open, setOpen] = useState(false);
-    const [confirmingDelete, setConfirmingDelete] = useState(false);
-    const menuRef = useRef(null);
+                onSuccess: () => {
+                    reset();
 
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
-                setOpen(false);
-                setConfirmingDelete(false);
+                    setReplyingTo(null);
+
+                    setShowComments(true);
+                },
+
+                onError: (formErrors) => {
+                    console.error(
+                        "Comment validation error:",
+                        formErrors
+                    );
+                },
             }
-        };
+        );
+    };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    /*
+    |--------------------------------------------------------------------------
+    | Like post
+    |--------------------------------------------------------------------------
+    */
 
-    const handleDelete = () => {
-        router.delete(`/community/${post.id}`, {
-            preserveScroll: true,
+    const handleLike = () => {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        router.post(
+            `/community/${post.id}/like`,
+            {},
+            {
+                preserveScroll: true,
+            }
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Like comment
+    |--------------------------------------------------------------------------
+    */
+
+    const handleCommentLike = (commentId) => {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        router.post(
+            `/community/comments/${commentId}/like`,
+            {},
+            {
+                preserveScroll: true,
+            }
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start reply
+    |--------------------------------------------------------------------------
+    */
+
+    const handleReply = (comment) => {
+        setReplyingTo(comment);
+
+        setData({
+            content: "",
+            parent_id: comment.id,
         });
+
+        setShowComments(true);
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cancel reply
+    |--------------------------------------------------------------------------
+    */
+
+    const cancelReply = () => {
+        setReplyingTo(null);
+
+        setData({
+            content: "",
+            parent_id: null,
+        });
+
+        reset();
     };
 
     return (
-        <div ref={menuRef} className="relative">
+        <article className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+            {/* ==========================================================
+                POST
+            ========================================================== */}
 
-            <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-black"
-            >
-                <DotsIcon />
-            </button>
+            <div className="p-5 sm:p-6">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        {post.user?.avatar ? (
+                            <img
+                                src={post.user.avatar}
+                                alt={post.user.name || "User"}
+                                className="h-11 w-11 rounded-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0A599E] text-sm font-bold text-white">
+                                {post.user?.name
+                                    ?.charAt(0)
+                                    ?.toUpperCase() || "U"}
+                            </div>
+                        )}
 
-            {open && (
-                <div className="absolute right-0 top-9 z-10 w-44 overflow-hidden rounded-2xl bg-white py-1.5 shadow-lg ring-1 ring-black/5">
+                        <div>
+                            <h3 className="text-sm font-bold text-black">
+                                {post.user?.name ||
+                                    "Anonymous"}
+                            </h3>
 
-                    {post.is_owner ? (
-                        confirmingDelete ? (
-                            <div className="px-4 py-3">
-                                <p className="text-xs text-gray-500">Delete this post?</p>
-                                <div className="mt-2 flex gap-2">
+                            <p className="mt-0.5 text-xs text-gray-400">
+                                {post.created_at}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="mt-5">
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
+                        {post.content}
+                    </p>
+
+                    {post.image && (
+                        <div className="mt-4 overflow-hidden rounded-2xl">
+                            <img
+                                src={post.image}
+                                alt="Community post"
+                                className="max-h-[600px] w-full object-cover"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div className="mt-5 flex items-center gap-6 border-t border-gray-100 pt-4">
+                    {/* Like */}
+                    <button
+                        type="button"
+                        disabled={!isAuthenticated}
+                        onClick={handleLike}
+                        className={`inline-flex items-center gap-2 text-sm font-semibold transition ${
+                            post.liked_by_user
+                                ? "text-[#0A599E]"
+                                : "text-gray-500 hover:text-[#0A599E]"
+                        }`}
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="h-5 w-5"
+                            fill={
+                                post.liked_by_user
+                                    ? "currentColor"
+                                    : "none"
+                            }
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path
+                                d="M7 10v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Zm0 0 4-7a2 2 0 0 1 4 1.2V7h5a2 2 0 0 1 2 2.3l-1 8A3 3 0 0 1 18 20H7"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+
+                        <span>
+                            {post.likes_count || 0}
+                        </span>
+                    </button>
+
+                    {/* Comments */}
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowComments(
+                                !showComments
+                            )
+                        }
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-[#0A599E]"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path
+                                d="M21 11.5a8.38 8.38 0 0 1-1 4.2 8.5 8.5 0 0 1-7.5 4.3 8.38 8.38 0 0 1-4.2-1L3 21l1.5-5.3a8.38 8.38 0 0 1-1-4.2 8.5 8.5 0 0 1 4.3-7.5 8.38 8.38 0 0 1 4.2-1h.5a8.5 8.5 0 0 1 8.5 8.5v.5Z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+
+                        <span>
+                            {post.comments_count || 0}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            {/* ==========================================================
+                COMMENTS
+            ========================================================== */}
+
+            {showComments && (
+                <div className="border-t border-gray-100 bg-gray-50/60 p-5 sm:p-6">
+                    {/* Comment form */}
+                    {isAuthenticated && (
+                        <form
+                            onSubmit={
+                                handleCommentSubmit
+                            }
+                        >
+                            {/* Reply indicator */}
+                            {replyingTo && (
+                                <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0A599E]/5 px-3 py-2">
+                                    <span className="text-xs text-gray-600">
+                                        Replying to{" "}
+                                        <strong className="text-black">
+                                            {
+                                                replyingTo
+                                                    .user
+                                                    ?.name
+                                            }
+                                        </strong>
+                                    </span>
+
                                     <button
                                         type="button"
-                                        onClick={handleDelete}
-                                        className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white"
-                                    >
-                                        Delete
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setConfirmingDelete(false)}
-                                        className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600"
+                                        onClick={
+                                            cancelReply
+                                        }
+                                        className="text-xs font-bold text-gray-500 transition hover:text-red-500"
                                     >
                                         Cancel
                                     </button>
                                 </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                {/* Avatar */}
+                                {auth?.user?.avatar ? (
+                                    <img
+                                        src={
+                                            auth.user
+                                                .avatar
+                                        }
+                                        alt={
+                                            auth.user
+                                                .name
+                                        }
+                                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0A599E] text-xs font-bold text-white">
+                                        {auth?.user?.name
+                                            ?.charAt(
+                                                0
+                                            )
+                                            ?.toUpperCase() ||
+                                            "U"}
+                                    </div>
+                                )}
+
+                                <div className="min-w-0 flex-1">
+                                    <textarea
+                                        value={
+                                            data.content
+                                        }
+                                        onChange={(e) =>
+                                            setData(
+                                                "content",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder={
+                                            replyingTo
+                                                ? "Write a reply..."
+                                                : "Write a comment..."
+                                        }
+                                        rows={2}
+                                        disabled={
+                                            processing
+                                        }
+                                        className="w-full resize-none rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#0A599E] focus:ring-2 focus:ring-[#0A599E]/20 disabled:opacity-50"
+                                    />
+
+                                    {errors.content && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">
+                                            {
+                                                errors.content
+                                            }
+                                        </p>
+                                    )}
+
+                                    <div className="mt-2 flex justify-end">
+                                        <button
+                                            type="submit"
+                                            disabled={
+                                                processing ||
+                                                !data.content.trim()
+                                            }
+                                            className="rounded-full bg-[#0A599E] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#07406F] disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            {processing
+                                                ? "Posting..."
+                                                : replyingTo
+                                                ? "Reply"
+                                                : "Comment"}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => setConfirmingDelete(true)}
-                                className="flex w-full items-center px-4 py-2 text-sm text-red-500 hover:bg-gray-50"
-                            >
-                                Delete post
-                            </button>
-                        )
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setOpen(false);
-                                if (!isAuthenticated) {
-                                    router.visit('/login');
-                                    return;
-                                }
-                                alert('Thanks — this post has been reported.');
-                            }}
-                            className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Report post
-                        </button>
+                        </form>
                     )}
 
+                    {/* ==================================================
+                        COMMENTS LIST
+                    ================================================== */}
+
+                    <div className="mt-6 space-y-5">
+                        {post.recent_comments?.length > 0 ? (
+                            post.recent_comments.map((comment) => (
+                                <CommentItem
+                                    key={comment.id}
+                                    comment={comment}
+                                    isAuthenticated={isAuthenticated}
+                                    onReply={handleReply}
+                                    onLike={handleCommentLike}
+                                />
+                            ))
+                        ) : (
+                            <div className="py-6 text-center">
+                                <p className="text-sm text-gray-400">
+                                    No comments yet.
+                                </p>
+
+                                {isAuthenticated && (
+                                    <p className="mt-1 text-xs text-gray-400">
+                                        Be the first to
+                                        comment.
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
-
-        </div>
+        </article>
     );
 }
 
-function CommentItem({ comment, postId, isAuthenticated, depth = 0 }) {
-    const [liked, setLiked] = useState(comment.liked_by_user);
-    const [likesCount, setLikesCount] = useState(comment.likes_count);
-    const [replying, setReplying] = useState(false);
-    const [replies, setReplies] = useState(comment.replies || []);
 
-    const { data, setData, post, processing, reset } = useForm({
-        content: '',
-        parent_id: comment.id,
-    });
+/*
+|--------------------------------------------------------------------------
+| Comment Component
+|--------------------------------------------------------------------------
+*/
 
-    const toggleLike = () => {
-        if (!isAuthenticated) {
-            router.visit('/login');
-            return;
-        }
-
-        setLiked((prev) => !prev);
-        setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-
-        router.post(`/community/comments/${comment.id}/like`, {}, {
-            preserveScroll: true,
-            preserveState: true,
-        });
-    };
-
-    const submitReply = (e) => {
-        e.preventDefault();
-        if (!data.content.trim()) return;
-
-        post(`/community/${postId}/comments`, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                setReplies((prev) => [
-                    ...prev,
-                    {
-                        id: Date.now(),
-                        content: data.content,
-                        created_at: 'just now',
-                        user: { name: 'You', avatar: null },
-                        likes_count: 0,
-                        liked_by_user: false,
-                        replies: [],
-                    },
-                ]);
-                reset('content');
-                setReplying(false);
-            },
-        });
-    };
-
+function CommentItem({
+    comment,
+    isAuthenticated,
+    onReply,
+    onLike,
+}) {
     return (
-        <div className={depth > 0 ? 'ml-10 mt-3' : ''}>
-
+        <div>
+            {/* Main comment */}
             <div className="flex gap-3">
-
-                <Avatar user={comment.user} className={depth > 0 ? 'h-7 w-7' : 'h-9 w-9'} />
+                {/* Avatar */}
+                {comment.user?.avatar ? (
+                    <img
+                        src={comment.user.avatar}
+                        alt={
+                            comment.user.name ||
+                            "User"
+                        }
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                    />
+                ) : (
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600">
+                        {comment.user?.name
+                            ?.charAt(0)
+                            ?.toUpperCase() || "U"}
+                    </div>
+                )}
 
                 <div className="min-w-0 flex-1">
+                    {/* Comment bubble */}
+                    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-bold text-black">
+                                {comment.user?.name ||
+                                    "Anonymous"}
+                            </span>
 
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-bold text-gray-900">
-                            {comment.user.name}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                            {comment.created_at}
-                        </span>
+                            <span className="text-[10px] text-gray-400">
+                                {
+                                    comment.created_at
+                                }
+                            </span>
+                        </div>
+
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                            {comment.content}
+                        </p>
                     </div>
 
-                    <p className="mt-0.5 text-sm leading-5 text-gray-800">
-                        {comment.content}
-                    </p>
-
-                    <div className="mt-1.5 flex items-center gap-4">
-
+                    {/* Actions */}
+                    <div className="mt-1 flex items-center gap-4 px-2">
                         <button
                             type="button"
-                            onClick={toggleLike}
-                            className={`flex items-center gap-1.5 transition ${
-                                liked ? 'text-black' : 'text-gray-400 hover:text-black'
+                            disabled={
+                                !isAuthenticated
+                            }
+                            onClick={() =>
+                                onLike(comment.id)
+                            }
+                            className={`text-xs font-semibold transition ${
+                                comment.liked_by_user
+                                    ? "text-[#0A599E]"
+                                    : "text-gray-400 hover:text-[#0A599E]"
                             }`}
                         >
-                            <ThumbsUpIcon filled={liked} />
-                            <span className="text-xs font-medium">
-                                {likesCount > 0 ? likesCount : ''}
-                            </span>
+                            Like
+                            {comment.likes_count >
+                                0 &&
+                                ` (${comment.likes_count})`}
                         </button>
 
-                        {depth === 0 && isAuthenticated && (
+                        {isAuthenticated && (
                             <button
                                 type="button"
-                                onClick={() => setReplying((prev) => !prev)}
-                                className="text-xs font-bold uppercase tracking-wide text-gray-400 hover:text-black"
+                                onClick={() =>
+                                    onReply(
+                                        comment
+                                    )
+                                }
+                                className="text-xs font-semibold text-gray-400 transition hover:text-[#0A599E]"
                             >
                                 Reply
                             </button>
                         )}
-
-                    </div>
-
-                    {replying && (
-                        <form onSubmit={submitReply} className="mt-2 flex items-center gap-2 border-b border-gray-200 pb-1">
-                            <input
-                                type="text"
-                                value={data.content}
-                                onChange={(e) => setData('content', e.target.value)}
-                                placeholder={`Reply to ${comment.user.name}...`}
-                                autoFocus
-                                className="flex-1 border-0 bg-transparent p-0 text-sm focus:outline-none focus:ring-0"
-                            />
-                            <button
-                                type="submit"
-                                disabled={processing || !data.content.trim()}
-                                className="text-xs font-bold uppercase text-blue-600 disabled:text-gray-300"
-                            >
-                                Reply
-                            </button>
-                        </form>
-                    )}
-
-                    {replies.length > 0 && (
-                        <div className="space-y-3">
-                            {replies.map((reply) => (
-                                <CommentItem
-                                    key={reply.id}
-                                    comment={reply}
-                                    postId={postId}
-                                    isAuthenticated={isAuthenticated}
-                                    depth={depth + 1}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                </div>
-
-            </div>
-
-        </div>
-    );
-}
-
-export default function CommunityPost({ post, isAuthenticated }) {
-    const [showComments, setShowComments] = useState(false);
-    const [liked, setLiked] = useState(post.liked_by_user);
-    const [likesCount, setLikesCount] = useState(post.likes_count);
-    const [comments, setComments] = useState(post.recent_comments || []);
-    const [imageExpanded, setImageExpanded] = useState(false);
-
-    const { data, setData, post: submitComment, processing, reset } = useForm({
-        content: '',
-        parent_id: null,
-    });
-
-    const toggleLike = () => {
-        if (!isAuthenticated) {
-            router.visit('/login');
-            return;
-        }
-
-        setLiked((prev) => !prev);
-        setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-
-        router.post(`/community/${post.id}/like`, {}, {
-            preserveScroll: true,
-            preserveState: true,
-        });
-    };
-
-    const submitCommentForm = (e) => {
-        e.preventDefault();
-        if (!data.content.trim()) return;
-
-        submitComment(`/community/${post.id}/comments`, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                setComments((prev) => [
-                    {
-                        id: Date.now(),
-                        content: data.content,
-                        created_at: 'just now',
-                        user: { name: 'You', avatar: null },
-                        likes_count: 0,
-                        liked_by_user: false,
-                        replies: [],
-                    },
-                    ...prev,
-                ]);
-                reset('content');
-            },
-        });
-    };
-
-    return (
-        <div className="border-b border-gray-200 py-6 first:pt-0">
-
-            <div className="flex items-start justify-between">
-
-                <div className="flex items-center gap-3">
-                    <Avatar user={post.user} />
-
-                    <div>
-                        <p className="text-sm font-bold text-gray-900">
-                            {post.user.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                            {post.created_at}
-                        </p>
                     </div>
                 </div>
-
-                <PostMenu post={post} isAuthenticated={isAuthenticated} />
-
             </div>
 
-            <p className="mt-3 whitespace-pre-line text-[15px] leading-6 text-gray-900">
-                {post.content}
-            </p>
-
-            {post.image && (
-                <div
-                    className={`mt-3 flex justify-center overflow-hidden rounded-2xl border border-gray-200 bg-black/5 ${
-                        imageExpanded ? '' : 'max-h-[480px]'
-                    }`}
-                >
-                    <img
-                        src={post.image}
-                        alt=""
-                        onClick={() => setImageExpanded((prev) => !prev)}
-                        className="w-auto max-w-full cursor-pointer object-contain"
-                    />
-                </div>
-            )}
-
-            <div className="mt-4 flex items-center gap-5">
-
-                <div className="flex items-center overflow-hidden rounded-full bg-gray-100">
-
-                    <button
-                        type="button"
-                        onClick={toggleLike}
-                        className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition ${
-                            liked ? 'text-black' : 'text-gray-500 hover:bg-gray-200'
-                        }`}
-                    >
-                        <ThumbsUpIcon filled={liked} />
-                        {likesCount > 0 && likesCount}
-                    </button>
-
-                    <div className="h-5 w-px bg-gray-300" />
-
-                    <button
-                        type="button"
-                        className="flex items-center px-3 py-2 text-gray-500 hover:bg-gray-200"
-                        title="Dislike"
-                    >
-                        <ThumbsDownIcon />
-                    </button>
-
-                </div>
-
-                <button
-                    type="button"
-                    onClick={() => setShowComments((prev) => !prev)}
-                    className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-200"
-                >
-                    <CommentBubbleIcon />
-                    {post.comments_count} {post.comments_count === 1 ? 'Comment' : 'Comments'}
-                </button>
-
-                <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-200"
-                >
-                    <ShareIcon />
-                </button>
-
-            </div>
-
-            {showComments && (
-                <div className="mt-5 space-y-4 border-t border-gray-100 pt-5">
-
-                    {isAuthenticated && (
-                        <form onSubmit={submitCommentForm} className="flex items-center gap-3 border-b border-gray-200 pb-2">
-                            <Avatar user={{ name: 'You', avatar: null }} className="h-8 w-8" />
-                            <input
-                                type="text"
-                                value={data.content}
-                                onChange={(e) => setData('content', e.target.value)}
-                                placeholder="Add a comment..."
-                                className="flex-1 border-0 bg-transparent p-0 text-sm focus:outline-none focus:ring-0"
-                            />
-                            {data.content.trim() && (
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="text-xs font-bold uppercase text-blue-600 disabled:text-gray-300"
-                                >
-                                    Comment
-                                </button>
-                            )}
-                        </form>
-                    )}
-
-                    {comments.length > 0 ? (
-                        comments.map((comment) => (
+            {/* Replies */}
+            {comment.replies?.length > 0 && (
+                <div className="ml-12 mt-3 space-y-3">
+                    {comment.replies.map(
+                        (reply) => (
                             <CommentItem
-                                key={comment.id}
-                                comment={comment}
-                                postId={post.id}
-                                isAuthenticated={isAuthenticated}
+                                key={reply.id}
+                                comment={reply}
+                                isAuthenticated={
+                                    isAuthenticated
+                                }
+                                onReply={onReply}
+                                onLike={onLike}
                             />
-                        ))
-                    ) : (
-                        <p className="py-2 text-sm text-gray-400">No comments yet — be the first.</p>
+                        )
                     )}
-
                 </div>
             )}
-
         </div>
     );
 }

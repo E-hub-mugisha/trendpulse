@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,11 +13,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -28,35 +22,64 @@ class User extends Authenticatable
         'cover_photo',
         'bio',
         'location',
-    ]; // already imported
+    ];
 
-    public function getAvatarUrlAttribute(): string
-    {
-        return $this->avatar
-            ? asset('storage/' . $this->avatar)
-            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0A599E&color=fff';
-    }
-
-    public function getCoverPhotoUrlAttribute(): ?string
-    {
-        return $this->cover_photo ? asset('storage/' . $this->cover_photo) : null;
-    }
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    protected $appends = [
+        'avatar_url',
+        'cover_photo_url',
+    ];
+
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Avatar URL.
      */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar) {
+            return asset(
+                'storage/' .
+                ltrim(
+                    str_replace(
+                        '/storage/',
+                        '',
+                        $this->avatar
+                    ),
+                    '/'
+                )
+            );
+        }
+
+        return 'https://ui-avatars.com/api/?name=' .
+            urlencode($this->name) .
+            '&background=0A599E&color=fff&size=256';
+    }
+
+    /**
+     * Cover photo URL.
+     */
+    public function getCoverPhotoUrlAttribute(): ?string
+    {
+        if (!$this->cover_photo) {
+            return null;
+        }
+
+        return asset(
+            'storage/' .
+            ltrim(
+                str_replace(
+                    '/storage/',
+                    '',
+                    $this->cover_photo
+                ),
+                '/'
+            )
+        );
+    }
+
     protected function casts(): array
     {
         return [

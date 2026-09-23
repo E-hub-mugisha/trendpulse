@@ -15,6 +15,12 @@ class YoutubeController extends Controller
     {
         $activeCategory = $request->query('category');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Base query
+        |--------------------------------------------------------------------------
+        */
+
         $baseQuery = YoutubeVideo::query()
             ->with('category')
             ->where('is_published', true)
@@ -24,30 +30,76 @@ class YoutubeController extends Controller
                 });
             });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Featured
+        |--------------------------------------------------------------------------
+        */
+
         $featured = (clone $baseQuery)
             ->where('is_featured', true)
             ->latest('published_at')
-            ->first() ?? (clone $baseQuery)->latest('published_at')->first();
+            ->first();
+
+        // If the selected category has no featured video,
+        // use the latest video from that category.
+        if (!$featured) {
+            $featured = (clone $baseQuery)
+                ->latest('published_at')
+                ->first();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Trending
+        |--------------------------------------------------------------------------
+        */
 
         $trending = (clone $baseQuery)
-            ->when($featured, fn ($query) => $query->where('id', '!=', $featured->id))
+            ->when(
+                $featured,
+                fn($query) => $query->where('id', '!=', $featured->id)
+            )
             ->orderByDesc('views')
             ->take(5)
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Popular
+        |--------------------------------------------------------------------------
+        */
+
         $popular = (clone $baseQuery)
-            ->when($featured, fn ($query) => $query->where('id', '!=', $featured->id))
+            ->when(
+                $featured,
+                fn($query) => $query->where('id', '!=', $featured->id)
+            )
             ->orderByDesc('views')
-            ->skip(5)
             ->take(6)
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Latest
+        |--------------------------------------------------------------------------
+        */
+
         $latest = (clone $baseQuery)
-            ->when($featured, fn ($query) => $query->where('id', '!=', $featured->id))
+            ->when(
+                $featured,
+                fn($query) => $query->where('id', '!=', $featured->id)
+            )
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString()
-            ->through(fn ($video) => $this->transform($video));
+            ->through(fn($video) => $this->transform($video));
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
 
         $categories = Category::query()
             ->where('is_active', true)
@@ -55,14 +107,35 @@ class YoutubeController extends Controller
                 $query->where('is_published', true);
             })
             ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
+            ->get([
+                'id',
+                'name',
+                'slug',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Response
+        |--------------------------------------------------------------------------
+        */
 
         return Inertia::render('UserPages/Youtube/Index', [
-            'featured' => $featured ? $this->transform($featured) : null,
-            'trending' => $trending->map(fn ($video) => $this->transform($video))->values(),
-            'popular' => $popular->map(fn ($video) => $this->transform($video))->values(),
+            'featured' => $featured
+                ? $this->transform($featured)
+                : null,
+
+            'trending' => $trending
+                ->map(fn($video) => $this->transform($video))
+                ->values(),
+
+            'popular' => $popular
+                ->map(fn($video) => $this->transform($video))
+                ->values(),
+
             'latest' => $latest,
+
             'categories' => $categories,
+
             'activeCategory' => $activeCategory,
         ]);
     }
@@ -74,6 +147,7 @@ class YoutubeController extends Controller
         $video->increment('views');
 
         $relatedVideos = YoutubeVideo::query()
+            ->with('category')
             ->where('id', '!=', $video->id)
             ->where('is_published', true)
             ->latest('published_at')
@@ -82,7 +156,10 @@ class YoutubeController extends Controller
 
         return Inertia::render('UserPages/Youtube/Show', [
             'video' => $this->transform($video),
-            'relatedVideos' => $relatedVideos->map(fn ($item) => $this->transform($item))->values(),
+
+            'relatedVideos' => $relatedVideos
+                ->map(fn($item) => $this->transform($item))
+                ->values(),
         ]);
     }
 
@@ -100,5 +177,43 @@ class YoutubeController extends Controller
             'views' => $video->views,
             'published_at' => $video->published_at?->format('M d, Y'),
         ];
+    }
+
+    public function category(Category $category): Response
+    {
+        abort_unless($category->is_active, 404);
+
+        $videos = YoutubeVideo::query()
+            ->with('category')
+            ->where('is_published', true)
+            ->whereHas('category', function ($query) use ($category) {
+                $query->where('id', $category->id);
+            })
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString()
+            ->through(fn($video) => $this->transform($video));
+
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->whereHas('youtubeVideos', function ($query) {
+                $query->where('is_published', true);
+            })
+            ->orderBy('name')
+            ->get([
+                'id',
+                'name',
+                'slug',
+            ]);
+
+        return Inertia::render('UserPages/Youtube/Category', [
+            'category' => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ],
+            'videos' => $videos,
+            'categories' => $categories,
+        ]);
     }
 }

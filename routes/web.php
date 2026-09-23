@@ -30,6 +30,9 @@ Route::get('/about', [HomeController::class, 'about'])
 Route::get('/stories', [YoutubeController::class, 'index'])
     ->name('youtube.index');
 
+Route::get('/youtube/category/{category:slug}', [YoutubeController::class, 'category'])
+    ->name('youtube.category');
+
 Route::get('/youtube/{video}', [YoutubeController::class, 'show'])
     ->name('youtube.show');
 
@@ -48,11 +51,32 @@ Route::get('/people/{story}', [PeopleController::class, 'show'])
 Route::get('/community', [CommunityController::class, 'index'])
     ->name('community.index');
 Route::middleware('auth')->group(function () {
-    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
-    Route::post('/community/{post}/like', [CommunityController::class, 'toggleLike'])->name('community.like');
-    Route::post('/community/{post}/comments', [CommunityController::class, 'storeComment'])->name('community.comments.store');
-    Route::post('/community/comments/{comment}/like', [CommunityController::class, 'toggleCommentLike'])->name('community.comments.like');
-    Route::delete('/community/{post}', [CommunityController::class, 'destroy'])->name('community.destroy');
+
+    Route::post('/community', [
+        CommunityController::class,
+        'store',
+    ])->name('community.store');
+
+    Route::post('/community/{post}/like', [
+        CommunityController::class,
+        'toggleLike',
+    ])->name('community.like');
+
+
+    Route::post('/community/{post}/comments', [
+        CommunityController::class,
+        'storeComment',
+    ])->name('community.comments.store');
+
+    Route::post('/community/comments/{comment}/like', [
+        CommunityController::class,
+        'toggleCommentLike',
+    ])->name('community.comments.like');
+
+    Route::delete('/community/{post}', [
+        CommunityController::class,
+        'destroy',
+    ])->name('community.destroy');
 });
 Route::get('/share-your-story', [StorySubmissionController::class, 'create'])
     ->name('stories.create');
@@ -71,14 +95,36 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    Route::patch('/update/profile', [ProfileController::class, 'updateProfile'])->name('profile.update.photo');
-    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
-    Route::post('/profile/cover', [ProfileController::class, 'updateCover'])->name('profile.cover');
+    Route::get('/profile', [
+        ProfileController::class,
+        'show',
+    ])->name('profile.show');
+
+    Route::get('/profile/edit', [
+        ProfileController::class,
+        'edit',
+    ])->name('profile.edit');
+
+    Route::patch('/profile', [
+        ProfileController::class,
+        'updateProfile',
+    ])->name('profile.update');
+
+    Route::post('/profile/avatar', [
+        ProfileController::class,
+        'updateAvatar',
+    ])->name('profile.avatar');
+
+    Route::post('/profile/cover', [
+        ProfileController::class,
+        'updateCover',
+    ])->name('profile.cover');
+
+    Route::delete('/profile', [
+        ProfileController::class,
+        'destroy',
+    ])->name('profile.destroy');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

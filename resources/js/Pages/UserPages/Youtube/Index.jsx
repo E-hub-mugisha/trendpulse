@@ -1,25 +1,68 @@
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
 import SectionHeading from '../../../Components/SectionHeading';
 
-const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@TrendPulse_Global/featured';
+const YOUTUBE_CHANNEL_URL =
+    'https://www.youtube.com/@TrendPulse_Global/featured';
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
 
 function getYoutubeUrl(video) {
-    if (video.youtube_id) return `https://www.youtube.com/watch?v=${video.youtube_id}`;
+    if (video?.youtube_id) {
+        return `https://www.youtube.com/watch?v=${video.youtube_id}`;
+    }
+
     return YOUTUBE_CHANNEL_URL;
 }
 
 function getThumbnail(video) {
-    return video.thumbnail_url || `https://img.youtube.com/vi/${video.youtube_id}/hqdefault.jpg`;
+    if (video?.thumbnail_url) {
+        return video.thumbnail_url;
+    }
+
+    if (video?.youtube_id) {
+        return `https://img.youtube.com/vi/${video.youtube_id}/hqdefault.jpg`;
+    }
+
+    return '/images/youtube-placeholder.jpg';
 }
+
+function formatViews(views) {
+    if (!views) {
+        return 'Watch now';
+    }
+
+    return `${Number(views).toLocaleString()} views`;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Icons
+|--------------------------------------------------------------------------
+*/
 
 function PlayIcon({ className = 'h-4 w-4' }) {
     return (
-        <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+        <svg
+            viewBox="0 0 24 24"
+            className={className}
+            fill="currentColor"
+            aria-hidden="true"
+        >
             <path d="M8 5v14l11-7L8 5Z" />
         </svg>
     );
 }
+
+/*
+|--------------------------------------------------------------------------
+| Section Header
+|--------------------------------------------------------------------------
+*/
 
 function SectionHeader({ title, viewAllHref }) {
     return (
@@ -28,6 +71,7 @@ function SectionHeader({ title, viewAllHref }) {
                 <span className="h-5 w-1.5 rounded-full bg-[#0A599E]" />
                 {title}
             </h2>
+
             {viewAllHref && (
                 <Link
                     href={viewAllHref}
@@ -40,25 +84,32 @@ function SectionHeader({ title, viewAllHref }) {
     );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Video Card
+|--------------------------------------------------------------------------
+*/
+
 function VideoCard({ video }) {
     return (
-        <div className="group">
-
-            <Link href={`/youtube/${video.slug}`} className="block">
-                <div className="relative aspect-video overflow-hidden rounded-2xl bg-gray-200">
-
+        <article className="group">
+            <Link
+                href={`/youtube/${video.slug}`}
+                className="block"
+            >
+                <div className="relative aspect-video overflow-hidden rounded-2xl bg-gray-100">
                     <img
                         src={getThumbnail(video)}
                         alt={video.title}
+                        loading="lazy"
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
 
-                    <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/20" />
+                    <div className="absolute inset-0 bg-black/0 transition duration-300 group-hover:bg-black/20" />
 
-                    <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg">
+                    <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition duration-300 group-hover:scale-110">
                         <PlayIcon className="h-4 w-4" />
                     </div>
-
                 </div>
 
                 <div className="mt-4">
@@ -66,18 +117,25 @@ function VideoCard({ video }) {
                         {video.category || 'Story'}
                     </p>
 
-                    <h3 className="mt-1 line-clamp-2 text-lg font-bold leading-6 text-black">
+                    <h3 className="mt-1 line-clamp-2 text-lg font-bold leading-6 text-black transition group-hover:text-[#0A599E]">
                         {video.title}
                     </h3>
 
-                    <p className="mt-2 text-sm text-gray-400">
-                        {video.views ? `${Number(video.views).toLocaleString()} views` : 'Watch now'}
-                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
+                        {video.published_at && (
+                            <>
+                                <span>{video.published_at}</span>
+                                <span>•</span>
+                            </>
+                        )}
+
+                        <span>{formatViews(video.views)}</span>
+                    </div>
                 </div>
             </Link>
 
-            
-            <a    href={getYoutubeUrl(video)}
+            <a
+                href={getYoutubeUrl(video)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-[#0A599E] transition hover:text-[#07406F]"
@@ -85,9 +143,15 @@ function VideoCard({ video }) {
                 <PlayIcon />
                 Watch on YouTube
             </a>
-        </div>
+        </article>
     );
 }
+
+/*
+|--------------------------------------------------------------------------
+| Video List Row
+|--------------------------------------------------------------------------
+*/
 
 function VideoListRow({ video, rank }) {
     return (
@@ -96,13 +160,18 @@ function VideoListRow({ video, rank }) {
                 {String(rank).padStart(2, '0')}
             </span>
 
-            <Link href={`/youtube/${video.slug}`} className="flex min-w-0 flex-1 items-center gap-4">
-                <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-gray-200">
+            <Link
+                href={`/youtube/${video.slug}`}
+                className="flex min-w-0 flex-1 items-center gap-4"
+            >
+                <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-gray-100">
                     <img
                         src={getThumbnail(video)}
                         alt={video.title}
+                        loading="lazy"
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
+
                     <div className="absolute inset-0 flex items-center justify-center bg-black/10">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-black">
                             <PlayIcon className="h-3 w-3" />
@@ -114,17 +183,19 @@ function VideoListRow({ video, rank }) {
                     <p className="text-xs font-bold uppercase tracking-wider text-[#0A599E]">
                         {video.category || 'Story'}
                     </p>
-                    <h3 className="mt-1 line-clamp-2 text-base font-bold leading-5 text-black group-hover:text-[#0A599E]">
+
+                    <h3 className="mt-1 line-clamp-2 text-base font-bold leading-5 text-black transition group-hover:text-[#0A599E]">
                         {video.title}
                     </h3>
+
                     <p className="mt-1 text-xs text-gray-400">
-                        {video.views ? `${Number(video.views).toLocaleString()} views` : 'Watch now'}
+                        {formatViews(video.views)}
                     </p>
                 </div>
             </Link>
 
-            
-            <a    href={getYoutubeUrl(video)}
+            <a
+                href={getYoutubeUrl(video)}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Watch on YouTube"
@@ -136,34 +207,71 @@ function VideoListRow({ video, rank }) {
     );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Empty State
+|--------------------------------------------------------------------------
+*/
+
+function EmptyState() {
+    return (
+        <div className="rounded-3xl border border-gray-100 bg-[#f7f7f5] px-6 py-20 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#0A599E] shadow-sm">
+                <PlayIcon className="h-7 w-7" />
+            </div>
+
+            <h3 className="mt-6 text-2xl font-black text-black">
+                No videos yet
+            </h3>
+
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-500">
+                Check back soon for new stories, conversations and
+                experiences from our community.
+            </p>
+
+            <a
+                href={YOUTUBE_CHANNEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#0A599E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#07406F]"
+            >
+                <PlayIcon />
+                Visit our channel
+            </a>
+        </div>
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Main Page
+|--------------------------------------------------------------------------
+*/
+
 export default function Index({
-    featured,
-    latest,
-    trending,
-    popular,
-    categories,
-    activeCategory,
+    featured = null,
+    latest = {
+        data: [],
+        links: [],
+    },
+    trending = [],
+    popular = [],
+    categories = [],
 }) {
-    const switchCategory = (slug) => {
-        if (slug === activeCategory) return;
+    const latestVideos = latest?.data || [];
 
-        router.get(
-            '/youtube',
-            slug ? { category: slug } : {},
-            { preserveScroll: true, preserveState: true, replace: true }
-        );
-    };
-
-    const categoryHref = (slug) => (slug ? `/youtube?category=${slug}` : '/youtube');
-
-    const hasTrending = trending && trending.length > 0;
-    const hasPopular = popular && popular.length > 0;
-    const hasLatest = latest && latest.data && latest.data.length > 0;
+    const hasFeatured = Boolean(featured);
+    const hasTrending = trending?.length > 0;
+    const hasPopular = popular?.length > 0;
+    const hasLatest = latestVideos.length > 0;
 
     return (
         <PublicLayout title="YouTube">
-
             <section className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
+
+                {/* =====================================================
+                    PAGE HEADER
+                ====================================================== */}
 
                 <div className="flex flex-wrap items-end justify-between gap-6">
                     <SectionHeading
@@ -172,8 +280,8 @@ export default function Index({
                         description="Real conversations, experiences and stories from our community."
                     />
 
-                    
-                    <a  href={YOUTUBE_CHANNEL_URL}
+                    <a
+                        href={YOUTUBE_CHANNEL_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mb-1 inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0A599E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#07406F]"
@@ -183,58 +291,67 @@ export default function Index({
                     </a>
                 </div>
 
-                <div className="mb-12 mt-10 flex flex-wrap gap-2 border-b border-gray-100 pb-8">
-                    <button
-                        type="button"
-                        onClick={() => switchCategory(null)}
-                        className={`rounded-full px-5 py-2 text-sm font-bold transition ${
-                            !activeCategory
-                                ? 'bg-[#0A599E] text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        All
-                    </button>
+                {/* =====================================================
+                    CATEGORY NAVIGATION
+                ====================================================== */}
 
-                    {categories?.map((category) => (
-                        <button
-                            key={category.id}
-                            type="button"
-                            onClick={() => switchCategory(category.slug)}
-                            className={`rounded-full px-5 py-2 text-sm font-bold transition ${
-                                activeCategory === category.slug
-                                    ? 'bg-[#0A599E] text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                        >
-                            {category.name}
-                        </button>
-                    ))}
-                </div>
+                {categories?.length > 0 && (
+                    <div className="mb-12 mt-10">
+                        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0A599E]">
+                                    Explore
+                                </p>
 
-                {!featured && !hasLatest && (
-                    <div className="rounded-3xl bg-gray-100 p-20 text-center">
-                        <h3 className="text-xl font-bold">No videos yet</h3>
-                        <p className="mt-2 text-gray-500">Check back soon for new stories.</p>
+                                <h3 className="mt-1 text-xl font-black text-black">
+                                    Browse by category
+                                </h3>
+                            </div>
 
-                        
-                        <a    href={YOUTUBE_CHANNEL_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0A599E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#07406F]"
-                        >
-                            <PlayIcon />
-                            Visit our channel
-                        </a>
+                            <span className="text-sm text-gray-400">
+                                {categories.length}{' '}
+                                {categories.length === 1
+                                    ? 'category'
+                                    : 'categories'}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-8">
+                            {categories.map((category) => (
+                                <Link
+                                    key={category.id}
+                                    href={`/youtube/category/${category.slug}`}
+                                    className="rounded-full bg-gray-100 px-5 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-[#0A599E] hover:text-white"
+                                >
+                                    {category.name}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 )}
 
-                {featured && (
+                {/* =====================================================
+                    EMPTY STATE
+                ====================================================== */}
+
+                {!hasFeatured && !hasLatest && (
+                    <EmptyState />
+                )}
+
+                {/* =====================================================
+                    FEATURED + TRENDING
+                ====================================================== */}
+
+                {hasFeatured && (
                     <div className="mb-16 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
 
-                        <div className="group block overflow-hidden rounded-3xl bg-white">
-                            <Link href={`/youtube/${featured.slug}`} className="block">
-                                <div className="relative aspect-video overflow-hidden rounded-3xl bg-gray-200">
+                        {/* Featured Video */}
+                        <article className="group block overflow-hidden rounded-3xl bg-white">
+                            <Link
+                                href={`/youtube/${featured.slug}`}
+                                className="block"
+                            >
+                                <div className="relative aspect-video overflow-hidden rounded-3xl bg-gray-100">
                                     <img
                                         src={getThumbnail(featured)}
                                         alt={featured.title}
@@ -247,7 +364,7 @@ export default function Index({
                                         Featured
                                     </span>
 
-                                    <div className="absolute bottom-5 left-5 flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-lg">
+                                    <div className="absolute bottom-5 left-5 flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-lg transition group-hover:scale-110">
                                         <PlayIcon className="h-5 w-5" />
                                     </div>
                                 </div>
@@ -256,18 +373,35 @@ export default function Index({
                                     <p className="text-xs font-bold uppercase tracking-wider text-[#0A599E]">
                                         {featured.category || 'Story'}
                                     </p>
-                                    <h2 className="mt-2 text-3xl font-black leading-tight text-black sm:text-4xl">
+
+                                    <h2 className="mt-2 text-3xl font-black leading-tight text-black transition group-hover:text-[#0A599E] sm:text-4xl">
                                         {featured.title}
                                     </h2>
+
                                     {featured.description && (
                                         <p className="mt-3 line-clamp-2 text-base leading-7 text-gray-500">
                                             {featured.description}
                                         </p>
                                     )}
+
+                                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-400">
+                                        {featured.published_at && (
+                                            <>
+                                                <span>
+                                                    {featured.published_at}
+                                                </span>
+                                                <span>•</span>
+                                            </>
+                                        )}
+
+                                        <span>
+                                            {formatViews(featured.views)}
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
 
-                            <div className="mt-4 flex flex-wrap items-center gap-4">
+                            <div className="mt-5 flex flex-wrap items-center gap-4">
                                 <Link
                                     href={`/youtube/${featured.slug}`}
                                     className="text-sm font-bold text-black transition hover:text-[#0A599E]"
@@ -275,8 +409,8 @@ export default function Index({
                                     Read more →
                                 </Link>
 
-                                
-                                <a    href={getYoutubeUrl(featured)}
+                                <a
+                                    href={getYoutubeUrl(featured)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 rounded-full bg-[#0A599E] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#07406F]"
@@ -285,71 +419,109 @@ export default function Index({
                                     Watch on YouTube
                                 </a>
                             </div>
-                        </div>
+                        </article>
 
+                        {/* Trending */}
                         {hasTrending && (
                             <div className="overflow-hidden rounded-3xl border border-gray-100 bg-[#f7f7f5]">
                                 <div className="flex items-center gap-2 border-b border-gray-200 bg-black px-6 py-4">
                                     <span className="h-2 w-2 rounded-full bg-[#0A599E]" />
+
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                                         Trending Now
                                     </h3>
                                 </div>
 
                                 <div className="divide-y divide-gray-200 px-6">
-                                    {trending.map((video, i) => (
-                                        <VideoListRow key={video.id} video={video} rank={i + 1} />
-                                    ))}
+                                    {trending.map(
+                                        (video, index) => (
+                                            <VideoListRow
+                                                key={video.id}
+                                                video={video}
+                                                rank={index + 1}
+                                            />
+                                        )
+                                    )}
                                 </div>
                             </div>
                         )}
                     </div>
                 )}
 
+                {/* =====================================================
+                    LATEST
+                ====================================================== */}
+
                 {hasLatest && (
                     <div className="mb-16">
-                        <SectionHeader title="Latest" viewAllHref={categoryHref(activeCategory)} />
+                        <SectionHeader
+                            title="Latest"
+                        />
 
                         <div className="grid gap-x-7 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-                            {latest.data.map((video) => (
-                                <VideoCard key={video.id} video={video} />
+                            {latestVideos.map((video) => (
+                                <VideoCard
+                                    key={video.id}
+                                    video={video}
+                                />
                             ))}
                         </div>
 
-                        {latest.links && latest.links.length > 3 && (
-                            <div className="mt-14 flex flex-wrap justify-center gap-2">
-                                {latest.links.map((link, index) => (
-                                    <Link
-                                        key={index}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                            link.active
-                                                ? 'bg-[#0A599E] text-white'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        } ${!link.url ? 'pointer-events-none opacity-40' : ''}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        {/* Pagination */}
+                        {latest?.links &&
+                            latest.links.length > 3 && (
+                                <div className="mt-14 flex flex-wrap justify-center gap-2">
+                                    {latest.links.map(
+                                        (link, index) => (
+                                            <Link
+                                                key={index}
+                                                href={
+                                                    link.url || '#'
+                                                }
+                                                preserveScroll
+                                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                                    link.active
+                                                        ? 'bg-[#0A599E] text-white'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                } ${
+                                                    !link.url
+                                                        ? 'pointer-events-none opacity-40'
+                                                        : ''
+                                                }`}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: link.label,
+                                                }}
+                                            />
+                                        )
+                                    )}
+                                </div>
+                            )}
                     </div>
                 )}
+
+                {/* =====================================================
+                    POPULAR
+                ====================================================== */}
 
                 {hasPopular && (
                     <div>
                         <SectionHeader title="Popular" />
 
                         <div className="divide-y divide-gray-100">
-                            {popular.map((video, i) => (
-                                <VideoListRow key={video.id} video={video} rank={i + 1} />
-                            ))}
+                            {popular.map(
+                                (video, index) => (
+                                    <VideoListRow
+                                        key={video.id}
+                                        video={video}
+                                        rank={index + 1}
+                                    />
+                                )
+                            )}
                         </div>
                     </div>
                 )}
 
             </section>
-
         </PublicLayout>
     );
 }
