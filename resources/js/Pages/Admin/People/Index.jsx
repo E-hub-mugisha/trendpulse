@@ -1,5 +1,3 @@
-// resources/js/Pages/Admin/People/Index.jsx
-
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -49,10 +47,20 @@ export default function Index({ stories, categories, filters, stats }) {
         applyFilters({ search });
     };
 
-    const handleDelete = (id) => {
-        router.delete(`/admin/people/${id}`, {
+    const handleDelete = (slug) => {
+        if (!slug) {
+            return;
+        }
+
+        router.delete(`/admin/people/${slug}`, {
             preserveScroll: true,
-            onSuccess: () => setConfirmDelete(null),
+            onSuccess: () => {
+                setConfirmDelete(null);
+            },
+
+            onError: (errors) => {
+                console.error("Delete failed:", errors);
+            },
         });
     };
 
@@ -318,7 +326,7 @@ export default function Index({ stories, categories, filters, stats }) {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => handleDelete(confirmDelete.id)}
+                                onClick={() => handleDelete(confirmDelete.slug)}
                                 className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white"
                             >
                                 Delete

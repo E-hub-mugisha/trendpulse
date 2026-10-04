@@ -176,7 +176,9 @@ class YoutubeVideoController extends Controller
     {
         $video->delete();
 
-        return back()->with('success', 'Video deleted.');
+        return redirect()
+            ->route('admin.youtube.index')
+            ->with('success', 'Video deleted successfully.');
     }
 
     private function uniqueSlug(string $title, ?int $ignoreId = null): string
