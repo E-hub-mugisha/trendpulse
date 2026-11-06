@@ -1,5 +1,3 @@
-// resources/js/Pages/Admin/People/Show.jsx
-
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';

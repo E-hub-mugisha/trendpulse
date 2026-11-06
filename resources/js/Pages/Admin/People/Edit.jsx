@@ -1,5 +1,3 @@
-// resources/js/Pages/Admin/People/Edit.jsx
-
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';

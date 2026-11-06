@@ -1,521 +1,280 @@
-import { router, useForm, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { Link, router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
+import { Heart, MessageCircle, Reply, X } from 'lucide-react';
 
-export default function CommunityPost({
-    post,
-    isAuthenticated = false,
-}) {
+const LONG_POST = 280;
+
+function Avatar({ user, size = 'h-10 w-10', tone = 'brand' }) {
+    const initial = user?.name?.charAt(0)?.toUpperCase() || 'U';
+    if (user?.avatar) {
+        return <img src={user.avatar} alt="" className={`${size} shrink-0 rounded-full object-cover`} />;
+    }
+    return (
+        <div className={`${size} flex shrink-0 items-center justify-center rounded-full text-xs font-bold ${tone === 'brand' ? 'bg-[#0A599E] text-white' : 'bg-slate-200 text-slate-600'}`}>
+            {initial}
+        </div>
+    );
+}
+
+export default function CommunityPost({ post, isAuthenticated }) {
     const { auth } = usePage().props;
+    const authed = isAuthenticated ?? !!auth?.user;
 
     const [showComments, setShowComments] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
+    const [expanded, setExpanded] = useState(false);
+    const [lightbox, setLightbox] = useState(false);
+    const [liked, setLiked] = useState(!!post.liked_by_user);
+    const [likes, setLikes] = useState(post.likes_count || 0);
+    const [burst, setBurst] = useState(0);
+    const textareaRef = useRef(null);
 
-    const {
-        data,
-        setData,
-        post: submitComment,
-        processing,
-        errors,
-        reset,
-    } = useForm({
-        content: "",
+    const { data, setData, post: submitComment, processing, errors, reset } = useForm({
+        content: '',
         parent_id: null,
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Submit comment
-    |--------------------------------------------------------------------------
-    */
+    // Keep optimistic like state in sync with server data
+    useEffect(() => {
+        setLiked(!!post.liked_by_user);
+        setLikes(post.likes_count || 0);
+    }, [post.liked_by_user, post.likes_count]);
 
-    const handleCommentSubmit = (e) => {
-        e.preventDefault();
+    // Lightbox: Esc to close + scroll lock
+    useEffect(() => {
+        if (!lightbox) return;
+        const onKey = (e) => e.key === 'Escape' && setLightbox(false);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', onKey);
+        return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); };
+    }, [lightbox]);
 
-        if (!data.content.trim() || processing) {
-            return;
-        }
-
-        submitComment(
-            `/community/${post.id}/comments`,
-            {
-                preserveScroll: true,
-
-                onSuccess: () => {
-                    reset();
-
-                    setReplyingTo(null);
-
-                    setShowComments(true);
-                },
-
-                onError: (formErrors) => {
-                    console.error(
-                        "Comment validation error:",
-                        formErrors
-                    );
-                },
-            }
-        );
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Like post
-    |--------------------------------------------------------------------------
-    */
+    const goLogin = () => router.visit('/login');
 
     const handleLike = () => {
-        if (!isAuthenticated) {
-            return;
-        }
-
-        router.post(
-            `/community/${post.id}/like`,
-            {},
-            {
-                preserveScroll: true,
-            }
-        );
+        if (!authed) return goLogin();
+        const next = !liked;
+        setLiked(next);
+        setLikes((l) => Math.max(0, l + (next ? 1 : -1)));
+        setBurst((b) => b + 1);
+        router.post(`/community/${post.id}/like`, {}, {
+            preserveScroll: true,
+            onError: () => { setLiked(!next); setLikes((l) => Math.max(0, l + (next ? -1 : 1))); },
+        });
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Like comment
-    |--------------------------------------------------------------------------
-    */
 
     const handleCommentLike = (commentId) => {
-        if (!isAuthenticated) {
-            return;
-        }
-
-        router.post(
-            `/community/comments/${commentId}/like`,
-            {},
-            {
-                preserveScroll: true,
-            }
-        );
+        if (!authed) return goLogin();
+        router.post(`/community/comments/${commentId}/like`, {}, { preserveScroll: true });
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Start reply
-    |--------------------------------------------------------------------------
-    */
 
     const handleReply = (comment) => {
         setReplyingTo(comment);
-
-        setData({
-            content: "",
-            parent_id: comment.id,
-        });
-
+        setData({ content: '', parent_id: comment.id });
         setShowComments(true);
+        setTimeout(() => textareaRef.current?.focus(), 50);
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cancel reply
-    |--------------------------------------------------------------------------
-    */
 
     const cancelReply = () => {
         setReplyingTo(null);
-
-        setData({
-            content: "",
-            parent_id: null,
-        });
-
+        setData({ content: '', parent_id: null });
         reset();
     };
 
-    return (
-        <article className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-            {/* ==========================================================
-                POST
-            ========================================================== */}
+    const handleCommentSubmit = (e) => {
+        e?.preventDefault();
+        if (!data.content.trim() || processing) return;
+        submitComment(`/community/${post.id}/comments`, {
+            preserveScroll: true,
+            onSuccess: () => { reset(); setReplyingTo(null); setShowComments(true); },
+        });
+    };
 
+    const content = post.content || '';
+    const isLong = content.length > LONG_POST;
+    const commentCount = post.comments_count || 0;
+
+    return (
+        <article className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition hover:shadow-md">
             <div className="p-5 sm:p-6">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        {post.user?.avatar ? (
-                            <img
-                                src={post.user.avatar}
-                                alt={post.user.name || "User"}
-                                className="h-11 w-11 rounded-full object-cover"
-                            />
-                        ) : (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0A599E] text-sm font-bold text-white">
-                                {post.user?.name
-                                    ?.charAt(0)
-                                    ?.toUpperCase() || "U"}
-                            </div>
-                        )}
-
-                        <div>
-                            <h3 className="text-sm font-bold text-black">
-                                {post.user?.name ||
-                                    "Anonymous"}
-                            </h3>
-
-                            <p className="mt-0.5 text-xs text-gray-400">
-                                {post.created_at}
-                            </p>
-                        </div>
+                <div className="flex items-center gap-3">
+                    <Avatar user={post.user} size="h-11 w-11" />
+                    <div className="min-w-0">
+                        <h3 className="truncate text-sm font-bold text-slate-900">{post.user?.name || 'Anonymous'}</h3>
+                        <p className="mt-0.5 text-xs text-slate-400">{post.created_at}</p>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="mt-5">
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
-                        {post.content}
-                    </p>
+                <div className="mt-4">
+                    <p className={`whitespace-pre-wrap text-[15px] leading-7 text-slate-700 ${isLong && !expanded ? 'line-clamp-5' : ''}`}>{content}</p>
+                    {isLong && (
+                        <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-sm font-semibold text-[#0A599E] hover:text-[#07406F]">
+                            {expanded ? 'Show less' : 'Read more'}
+                        </button>
+                    )}
 
                     {post.image && (
-                        <div className="mt-4 overflow-hidden rounded-2xl">
-                            <img
-                                src={post.image}
-                                alt="Community post"
-                                className="max-h-[600px] w-full object-cover"
-                            />
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setLightbox(true)}
+                            aria-label="View image full size"
+                            className="mt-4 block w-full overflow-hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A599E] focus-visible:ring-offset-2"
+                        >
+                            <img src={post.image} alt="" loading="lazy" className="max-h-[420px] w-full cursor-zoom-in object-cover transition duration-300 hover:scale-[1.02]" />
+                        </button>
                     )}
                 </div>
 
                 {/* Actions */}
-                <div className="mt-5 flex items-center gap-6 border-t border-gray-100 pt-4">
-                    {/* Like */}
+                <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
                     <button
                         type="button"
-                        disabled={!isAuthenticated}
                         onClick={handleLike}
-                        className={`inline-flex items-center gap-2 text-sm font-semibold transition ${
-                            post.liked_by_user
-                                ? "text-[#0A599E]"
-                                : "text-gray-500 hover:text-[#0A599E]"
+                        aria-pressed={liked}
+                        aria-label={authed ? (liked ? 'Unlike post' : 'Like post') : 'Log in to like'}
+                        title={authed ? undefined : 'Log in to like'}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A599E] ${
+                            liked ? 'bg-[#0A599E]/10 text-[#0A599E]' : 'text-slate-500 hover:bg-slate-100 hover:text-[#0A599E]'
                         }`}
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="h-5 w-5"
-                            fill={
-                                post.liked_by_user
-                                    ? "currentColor"
-                                    : "none"
-                            }
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path
-                                d="M7 10v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Zm0 0 4-7a2 2 0 0 1 4 1.2V7h5a2 2 0 0 1 2 2.3l-1 8A3 3 0 0 1 18 20H7"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-
-                        <span>
-                            {post.likes_count || 0}
-                        </span>
+                        <Heart key={burst} className={`h-[18px] w-[18px] ${liked && burst ? 'animate-[ping_0.01s_ease-out]' : ''}`} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} />
+                        <span className="tabular-nums">{likes}</span>
                     </button>
 
-                    {/* Comments */}
                     <button
                         type="button"
-                        onClick={() =>
-                            setShowComments(
-                                !showComments
-                            )
-                        }
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-[#0A599E]"
+                        onClick={() => setShowComments((v) => !v)}
+                        aria-expanded={showComments}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0A599E] ${
+                            showComments ? 'bg-slate-100 text-[#0A599E]' : 'text-slate-500 hover:bg-slate-100 hover:text-[#0A599E]'
+                        }`}
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path
-                                d="M21 11.5a8.38 8.38 0 0 1-1 4.2 8.5 8.5 0 0 1-7.5 4.3 8.38 8.38 0 0 1-4.2-1L3 21l1.5-5.3a8.38 8.38 0 0 1-1-4.2 8.5 8.5 0 0 1 4.3-7.5 8.38 8.38 0 0 1 4.2-1h.5a8.5 8.5 0 0 1 8.5 8.5v.5Z"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-
-                        <span>
-                            {post.comments_count || 0}
-                        </span>
+                        <MessageCircle className="h-[18px] w-[18px]" strokeWidth={2} />
+                        <span className="tabular-nums">{commentCount}</span>
+                        <span className="hidden sm:inline">{commentCount === 1 ? 'Comment' : 'Comments'}</span>
                     </button>
                 </div>
             </div>
 
-            {/* ==========================================================
-                COMMENTS
-            ========================================================== */}
-
+            {/* Comments */}
             {showComments && (
-                <div className="border-t border-gray-100 bg-gray-50/60 p-5 sm:p-6">
-                    {/* Comment form */}
-                    {isAuthenticated && (
-                        <form
-                            onSubmit={
-                                handleCommentSubmit
-                            }
-                        >
-                            {/* Reply indicator */}
+                <div className="tp-slide-up border-t border-slate-100 bg-slate-50/70 p-5 sm:p-6">
+                    {authed ? (
+                        <form onSubmit={handleCommentSubmit}>
                             {replyingTo && (
-                                <div className="mb-3 flex items-center justify-between rounded-xl bg-[#0A599E]/5 px-3 py-2">
-                                    <span className="text-xs text-gray-600">
-                                        Replying to{" "}
-                                        <strong className="text-black">
-                                            {
-                                                replyingTo
-                                                    .user
-                                                    ?.name
-                                            }
-                                        </strong>
+                                <div className="mb-3 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2">
+                                    <span className="text-xs text-slate-600">
+                                        Replying to <strong className="text-slate-900">{replyingTo.user?.name}</strong>
                                     </span>
-
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            cancelReply
-                                        }
-                                        className="text-xs font-bold text-gray-500 transition hover:text-red-500"
-                                    >
-                                        Cancel
+                                    <button type="button" onClick={cancelReply} className="rounded-full p-1 text-slate-400 transition hover:bg-white hover:text-red-500" aria-label="Cancel reply">
+                                        <X className="h-3.5 w-3.5" />
                                     </button>
                                 </div>
                             )}
 
                             <div className="flex gap-3">
-                                {/* Avatar */}
-                                {auth?.user?.avatar ? (
-                                    <img
-                                        src={
-                                            auth.user
-                                                .avatar
-                                        }
-                                        alt={
-                                            auth.user
-                                                .name
-                                        }
-                                        className="h-9 w-9 shrink-0 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0A599E] text-xs font-bold text-white">
-                                        {auth?.user?.name
-                                            ?.charAt(
-                                                0
-                                            )
-                                            ?.toUpperCase() ||
-                                            "U"}
-                                    </div>
-                                )}
-
+                                <Avatar user={auth?.user} size="h-9 w-9" />
                                 <div className="min-w-0 flex-1">
                                     <textarea
-                                        value={
-                                            data.content
-                                        }
-                                        onChange={(e) =>
-                                            setData(
-                                                "content",
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder={
-                                            replyingTo
-                                                ? "Write a reply..."
-                                                : "Write a comment..."
-                                        }
+                                        ref={textareaRef}
+                                        value={data.content}
+                                        onChange={(e) => setData('content', e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleCommentSubmit(e); }}
+                                        placeholder={replyingTo ? 'Write a reply…' : 'Write a comment…'}
                                         rows={2}
-                                        disabled={
-                                            processing
-                                        }
-                                        className="w-full resize-none rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-[#0A599E] focus:ring-2 focus:ring-[#0A599E]/20 disabled:opacity-50"
+                                        disabled={processing}
+                                        aria-label={replyingTo ? 'Reply' : 'Comment'}
+                                        className="w-full resize-none rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#0A599E] focus:ring-2 focus:ring-[#0A599E]/20 disabled:opacity-50"
                                     />
+                                    {errors.content && <p className="mt-1 text-xs font-medium text-red-500">{errors.content}</p>}
 
-                                    {errors.content && (
-                                        <p className="mt-1 text-xs font-medium text-red-500">
-                                            {
-                                                errors.content
-                                            }
-                                        </p>
-                                    )}
-
-                                    <div className="mt-2 flex justify-end">
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <span className="hidden text-[11px] text-slate-400 sm:block">Ctrl + Enter to send</span>
                                         <button
                                             type="submit"
-                                            disabled={
-                                                processing ||
-                                                !data.content.trim()
-                                            }
-                                            className="rounded-full bg-[#0A599E] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#07406F] disabled:cursor-not-allowed disabled:opacity-40"
+                                            disabled={processing || !data.content.trim()}
+                                            className="ml-auto rounded-full bg-[#0A599E] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#07406F] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                                         >
-                                            {processing
-                                                ? "Posting..."
-                                                : replyingTo
-                                                ? "Reply"
-                                                : "Comment"}
+                                            {processing ? 'Posting…' : replyingTo ? 'Reply' : 'Comment'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </form>
+                    ) : (
+                        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-center text-sm text-slate-500">
+                            <Link href="/login" className="font-semibold text-[#0A599E] hover:underline">Log in</Link> or{' '}
+                            <Link href="/register" className="font-semibold text-[#0A599E] hover:underline">create an account</Link> to join the conversation.
+                        </div>
                     )}
 
-                    {/* ==================================================
-                        COMMENTS LIST
-                    ================================================== */}
-
-                    <div className="mt-6 space-y-5">
+                    <div className="mt-5 space-y-5">
                         {post.recent_comments?.length > 0 ? (
-                            post.recent_comments.map((comment) => (
-                                <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    isAuthenticated={isAuthenticated}
-                                    onReply={handleReply}
-                                    onLike={handleCommentLike}
-                                />
+                            post.recent_comments.map((c) => (
+                                <CommentItem key={c.id} comment={c} authed={authed} onReply={handleReply} onLike={handleCommentLike} />
                             ))
                         ) : (
-                            <div className="py-6 text-center">
-                                <p className="text-sm text-gray-400">
-                                    No comments yet.
-                                </p>
-
-                                {isAuthenticated && (
-                                    <p className="mt-1 text-xs text-gray-400">
-                                        Be the first to
-                                        comment.
-                                    </p>
-                                )}
-                            </div>
+                            <p className="py-4 text-center text-sm text-slate-400">No comments yet. {authed && 'Be the first to comment.'}</p>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Lightbox */}
+            {lightbox && (
+                <div className="tp-fade-in fixed inset-0 z-[90] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Post image" onClick={() => setLightbox(false)}>
+                    <button type="button" onClick={() => setLightbox(false)} aria-label="Close image" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                        <X className="h-5 w-5" />
+                    </button>
+                    <img src={post.image} alt="" className="max-h-full max-w-full rounded-xl object-contain" onClick={(e) => e.stopPropagation()} />
                 </div>
             )}
         </article>
     );
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Comment Component
-|--------------------------------------------------------------------------
-*/
-
-function CommentItem({
-    comment,
-    isAuthenticated,
-    onReply,
-    onLike,
-}) {
+function CommentItem({ comment, authed, onReply, onLike, depth = 0 }) {
     return (
         <div>
-            {/* Main comment */}
             <div className="flex gap-3">
-                {/* Avatar */}
-                {comment.user?.avatar ? (
-                    <img
-                        src={comment.user.avatar}
-                        alt={
-                            comment.user.name ||
-                            "User"
-                        }
-                        className="h-9 w-9 shrink-0 rounded-full object-cover"
-                    />
-                ) : (
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600">
-                        {comment.user?.name
-                            ?.charAt(0)
-                            ?.toUpperCase() || "U"}
-                    </div>
-                )}
-
+                <Avatar user={comment.user} size="h-8 w-8" tone="muted" />
                 <div className="min-w-0 flex-1">
-                    {/* Comment bubble */}
-                    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                    <div className="rounded-2xl rounded-tl-md bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/70">
                         <div className="flex items-center justify-between gap-3">
-                            <span className="text-xs font-bold text-black">
-                                {comment.user?.name ||
-                                    "Anonymous"}
-                            </span>
-
-                            <span className="text-[10px] text-gray-400">
-                                {
-                                    comment.created_at
-                                }
-                            </span>
+                            <span className="truncate text-xs font-bold text-slate-900">{comment.user?.name || 'Anonymous'}</span>
+                            <span className="shrink-0 text-[11px] text-slate-400">{comment.created_at}</span>
                         </div>
-
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600">
-                            {comment.content}
-                        </p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">{comment.content}</p>
                     </div>
 
-                    {/* Actions */}
                     <div className="mt-1 flex items-center gap-4 px-2">
                         <button
                             type="button"
-                            disabled={
-                                !isAuthenticated
-                            }
-                            onClick={() =>
-                                onLike(comment.id)
-                            }
-                            className={`text-xs font-semibold transition ${
-                                comment.liked_by_user
-                                    ? "text-[#0A599E]"
-                                    : "text-gray-400 hover:text-[#0A599E]"
-                            }`}
+                            onClick={() => onLike(comment.id)}
+                            aria-pressed={!!comment.liked_by_user}
+                            title={authed ? undefined : 'Log in to like'}
+                            className={`inline-flex items-center gap-1 text-xs font-semibold transition ${comment.liked_by_user ? 'text-[#0A599E]' : 'text-slate-400 hover:text-[#0A599E]'}`}
                         >
-                            Like
-                            {comment.likes_count >
-                                0 &&
-                                ` (${comment.likes_count})`}
+                            <Heart className="h-3.5 w-3.5" fill={comment.liked_by_user ? 'currentColor' : 'none'} />
+                            Like{comment.likes_count > 0 && ` (${comment.likes_count})`}
                         </button>
-
-                        {isAuthenticated && (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    onReply(
-                                        comment
-                                    )
-                                }
-                                className="text-xs font-semibold text-gray-400 transition hover:text-[#0A599E]"
-                            >
-                                Reply
+                        {authed && (
+                            <button type="button" onClick={() => onReply(comment)} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-[#0A599E]">
+                                <Reply className="h-3.5 w-3.5" /> Reply
                             </button>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Replies */}
             {comment.replies?.length > 0 && (
-                <div className="ml-12 mt-3 space-y-3">
-                    {comment.replies.map(
-                        (reply) => (
-                            <CommentItem
-                                key={reply.id}
-                                comment={reply}
-                                isAuthenticated={
-                                    isAuthenticated
-                                }
-                                onReply={onReply}
-                                onLike={onLike}
-                            />
-                        )
-                    )}
+                <div className={`mt-3 space-y-3 border-l-2 border-slate-200 pl-4 ${depth < 2 ? 'ml-4' : 'ml-0'}`}>
+                    {comment.replies.map((r) => (
+                        <CommentItem key={r.id} comment={r} authed={authed} onReply={onReply} onLike={onLike} depth={depth + 1} />
+                    ))}
                 </div>
             )}
         </div>
